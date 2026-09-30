@@ -218,8 +218,8 @@ def generate_ticket_pdf(ticket) -> bytes:
     c.drawCentredString(mid_x + MID_W / 2, header_top, 'PANDORA AWARDS  ·  8TH EDITION')
 
     c.setFillColor(DARK_TEXT)
-    c.setFont('Helvetica-Bold', 13)
-    c.drawCentredString(mid_x + MID_W / 2, header_top - 7 * mm, 'E-VERIFICATION TICKET')
+    c.setFont('Helvetica-Bold', 10.5)
+    c.drawCentredString(mid_x + MID_W / 2, header_top - 7 * mm, 'PANDORA AWARD 8TH EDITION E-TICKET')
 
     # Gold divider line
     c.setStrokeColor(GOLD)

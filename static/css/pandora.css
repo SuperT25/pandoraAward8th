@@ -28,7 +28,7 @@ body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   background-color: var(--black);
   background-image: url('/static/img/pandora-logo.jpeg');
-  background-size: cover;
+  background-size: 480px;
   background-position: center center;
   background-attachment: fixed;
   background-repeat: no-repeat;

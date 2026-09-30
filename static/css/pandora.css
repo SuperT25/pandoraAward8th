@@ -26,10 +26,31 @@
 body {
   margin: 0;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: var(--black);
+  background-color: var(--black);
+  background-image: url('/static/img/pandora-bg.jpeg');
+  background-size: cover;
+  background-position: center center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
   color: var(--text-light);
   min-height: 100vh;
   font-size: 15px;
+}
+
+/* Dark overlay so content stays readable over the background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 2, 0, 0.82);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.layout-wrapper,
+.login-page {
+  position: relative;
+  z-index: 1;
 }
 
 a { color: var(--gold-light); text-decoration: none; }
@@ -48,18 +69,19 @@ h1, h2, h3, h4, h5 { color: var(--gold); font-weight: 700; }
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: radial-gradient(ellipse at center, var(--dark2) 0%, var(--black) 70%);
   padding: 1rem;
 }
 
 .login-card {
-  background: var(--dark);
+  background: rgba(20, 10, 0, 0.88);
   border: 1px solid var(--gold-dark);
   border-radius: 16px;
   padding: 2.5rem 2rem;
   width: 100%;
   max-width: 420px;
-  box-shadow: 0 0 60px rgba(201,150,12,0.15);
+  box-shadow: 0 0 60px rgba(201,150,12,0.25);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .login-logo {
@@ -94,8 +116,10 @@ h1, h2, h3, h4, h5 { color: var(--gold); font-weight: 700; }
 /* ── Sidebar ─────────────────────────────────────────────────────────── */
 .sidebar {
   width: var(--sidebar-w);
-  background: var(--dark);
+  background: rgba(20, 10, 0, 0.92);
   border-right: 1px solid var(--dark3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -195,7 +219,7 @@ h1, h2, h3, h4, h5 { color: var(--gold); font-weight: 700; }
 }
 
 .top-bar {
-  background: var(--dark);
+  background: rgba(20, 10, 0, 0.92);
   border-bottom: 1px solid var(--dark3);
   padding: 0.75rem 1.5rem;
   display: flex;
@@ -204,6 +228,8 @@ h1, h2, h3, h4, h5 { color: var(--gold); font-weight: 700; }
   position: sticky;
   top: 0;
   z-index: 50;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .top-bar .page-title {
@@ -230,11 +256,13 @@ h1, h2, h3, h4, h5 { color: var(--gold); font-weight: 700; }
 
 /* ── Cards ────────────────────────────────────────────────────────────── */
 .card {
-  background: var(--dark);
+  background: rgba(20, 10, 0, 0.88);
   border: 1px solid var(--dark3);
   border-radius: 12px;
   padding: 1.25rem;
   margin-bottom: 1.25rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .card-header {

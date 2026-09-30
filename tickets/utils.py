@@ -19,8 +19,6 @@ SITE_URL = 'https://pandoraaward8th.onrender.com'
 def get_client_ip(request):
     x_forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded:
-        # Use the LAST value — Render's load balancer appends the real IP last.
-        # The first value is client-controlled and can be forged.
         return x_forwarded.split(',')[-1].strip()
     return request.META.get('REMOTE_ADDR')
 
@@ -29,62 +27,50 @@ def get_client_ip(request):
 # QR Code generation
 # ---------------------------------------------------------------------------
 
-def generate_qr_image(qr_token: str, size: int = 10) -> bytes:
-    """
-    Generate a QR code PNG encoding the full live verify URL.
-    No personal data in the QR — only the token.
-    """
+def generate_qr_image(qr_token: str, size: int = 8) -> bytes:
     verify_url = f"{SITE_URL}/verify/qr/{qr_token}/"
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_H,
         box_size=size,
-        border=2,
+        border=1,
     )
     qr.add_data(verify_url)
     qr.make(fit=True)
     img = qr.make_image(fill_color="#0d2818", back_color="white")
-    buffer = io.BytesIO()
-    img.save(buffer, format='PNG')
-    return buffer.getvalue()
+    buf = io.BytesIO()
+    img.save(buf, format='PNG')
+    return buf.getvalue()
 
 
 def save_qr_to_file(ticket) -> str:
-    """
-    Save QR PNG via Django's default storage backend.
-    Uses Cloudinary in production, local filesystem in development.
-    """
     from django.core.files.base import ContentFile
     from django.core.files.storage import default_storage
-
-    png_bytes = generate_qr_image(ticket.qr_token)
-    rel_path = f"qrcodes/{ticket.ticket_number}.png"
-
-    # Delete existing file to avoid duplicates on Cloudinary
+    png = generate_qr_image(ticket.qr_token)
+    path = f"qrcodes/{ticket.ticket_number}.png"
     try:
-        if default_storage.exists(rel_path):
-            default_storage.delete(rel_path)
+        if default_storage.exists(path):
+            default_storage.delete(path)
     except Exception:
         pass
-
-    default_storage.save(rel_path, ContentFile(png_bytes))
-    return rel_path
+    default_storage.save(path, ContentFile(png))
+    return path
 
 
 # ---------------------------------------------------------------------------
-# Photo loading helper — works with local storage and Cloudinary
+# Load photo — works with Cloudinary (http URL) and local storage
 # ---------------------------------------------------------------------------
 
-def _load_photo_reader(photo_field):
-    """Return a ReportLab ImageReader for a Django ImageField, or None."""
+def _get_photo_reader(photo_field):
     from reportlab.lib.utils import ImageReader
     if not photo_field:
         return None
     try:
         url = photo_field.url
         if url.startswith('http'):
-            with urllib.request.urlopen(url) as resp:
-                return ImageReader(io.BytesIO(resp.read()))
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=10) as r:
+                return ImageReader(io.BytesIO(r.read()))
         else:
             return ImageReader(photo_field.path)
     except Exception:
@@ -92,252 +78,244 @@ def _load_photo_reader(photo_field):
 
 
 # ---------------------------------------------------------------------------
-# PDF Ticket generation
-# Layout: Left dark green | Centre cream | Right dark green
-# Size: 210 x 99 mm
+# PDF Ticket — Premium redesign
+# Size: 180 x 72 mm  (compact boarding-pass style)
 # ---------------------------------------------------------------------------
 
 def generate_ticket_pdf(ticket) -> bytes:
-    """
-    Generate the official Pandora Awards E-Ticket PDF.
-    Returns PDF bytes.
-    """
     from reportlab.lib.units import mm
     from reportlab.lib import colors
     from reportlab.lib.utils import ImageReader
     from reportlab.pdfgen import canvas
+    from reportlab.pdfbase import pdfmetrics
 
-    # ── Page setup ──────────────────────────────────────────────────────────
-    PAGE_W = 210 * mm
-    PAGE_H = 99 * mm
+    # ── Canvas ──────────────────────────────────────────────────────────────
+    W = 180 * mm
+    H = 72  * mm
 
-    # Colour palette
-    DARK_GREEN  = colors.HexColor('#0d2818')
-    GOLD        = colors.HexColor('#c9960c')
-    GOLD_LIGHT  = colors.HexColor('#e8c84a')
-    CREAM       = colors.HexColor('#f5f0e8')
-    WHITE       = colors.white
-    DARK_TEXT   = colors.HexColor('#1a1a1a')
-    GREY_TEXT   = colors.HexColor('#555555')
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf, pagesize=(W, H))
 
-    # Panel widths
-    LEFT_W  = 52 * mm
-    RIGHT_W = 38 * mm
-    MID_W   = PAGE_W - LEFT_W - RIGHT_W   # ~120 mm
+    # ── Colours ─────────────────────────────────────────────────────────────
+    GREEN      = colors.HexColor('#0d2818')
+    GREEN_MID  = colors.HexColor('#1a4a2a')
+    GOLD       = colors.HexColor('#c9960c')
+    GOLD_LT    = colors.HexColor('#e8c84a')
+    CREAM      = colors.HexColor('#faf6ee')
+    WHITE      = colors.white
+    BLACK      = colors.HexColor('#111111')
+    GREY       = colors.HexColor('#666666')
+    LGREY      = colors.HexColor('#999999')
 
-    buffer = io.BytesIO()
-    c = canvas.Canvas(buffer, pagesize=(PAGE_W, PAGE_H))
+    # ── Panel widths ─────────────────────────────────────────────────────────
+    LP = 42 * mm   # left panel
+    RP = 28 * mm   # right panel
+    MP = W - LP - RP  # centre ~110 mm
 
-    # ════════════════════════════════════════════════════════════════════════
-    # LEFT PANEL — dark green with logo
-    # ════════════════════════════════════════════════════════════════════════
-    c.setFillColor(DARK_GREEN)
-    c.rect(0, 0, LEFT_W, PAGE_H, fill=1, stroke=0)
+    # ════════════════════════════════════════════════════════════════
+    # BACKGROUND — full cream base
+    # ════════════════════════════════════════════════════════════════
+    c.setFillColor(CREAM)
+    c.rect(0, 0, W, H, fill=1, stroke=0)
 
-    # Gold top + bottom stripes
+    # ════════════════════════════════════════════════════════════════
+    # LEFT PANEL
+    # ════════════════════════════════════════════════════════════════
+    # Dark green fill
+    c.setFillColor(GREEN)
+    c.rect(0, 0, LP, H, fill=1, stroke=0)
+
+    # Subtle gold diagonal shimmer
+    c.saveState()
+    c.setStrokeColor(colors.HexColor('#c9960c'))
+    c.setLineWidth(0.4)
+    c.setStrokeAlpha(0.25)
+    for i in range(-4, 12):
+        c.line(i * 8 * mm, 0, i * 8 * mm + H, H)
+    c.restoreState()
+
+    # Gold top bar
     c.setFillColor(GOLD)
-    c.rect(0, PAGE_H - 4 * mm, LEFT_W, 4 * mm, fill=1, stroke=0)
-    c.rect(0, 0, LEFT_W, 4 * mm, fill=1, stroke=0)
+    c.rect(0, H - 3 * mm, LP, 3 * mm, fill=1, stroke=0)
 
-    # Gold diagonal accent
-    c.setStrokeColor(GOLD)
-    c.setLineWidth(1.5)
-    c.line(0, PAGE_H - 4 * mm, LEFT_W * 0.6, 0)
+    # Gold bottom bar
+    c.rect(0, 0, LP, 3 * mm, fill=1, stroke=0)
 
-    # Pandora logo
+    # Logo
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'img', 'pandora-logo.jpeg')
     if os.path.exists(logo_path):
-        logo_size = 36 * mm
-        logo_x = (LEFT_W - logo_size) / 2
-        logo_y = PAGE_H / 2 - 2 * mm
-        c.drawImage(
-            ImageReader(logo_path),
-            logo_x, logo_y, logo_size, logo_size,
-            preserveAspectRatio=True, mask='auto',
-        )
-    else:
-        c.setFillColor(GOLD)
-        c.setFont('Helvetica-Bold', 11)
-        c.drawCentredString(LEFT_W / 2, PAGE_H / 2 + 8 * mm, 'PANDORA')
-        c.setFont('Helvetica-Bold', 9)
-        c.drawCentredString(LEFT_W / 2, PAGE_H / 2 + 2 * mm, 'AWARDS')
+        lsz = 28 * mm
+        lx  = (LP - lsz) / 2
+        ly  = H / 2 - lsz / 2 + 2 * mm
+        c.drawImage(ImageReader(logo_path), lx, ly, lsz, lsz,
+                    preserveAspectRatio=True, mask='auto')
 
     # "Celebrating Excellence"
-    c.setFillColor(GOLD_LIGHT)
-    c.setFont('Helvetica-Oblique', 6.5)
-    c.drawCentredString(LEFT_W / 2, 8 * mm, 'Celebrating')
-    c.drawCentredString(LEFT_W / 2, 5 * mm, 'Excellence')
+    c.setFillColor(GOLD_LT)
+    c.setFont('Helvetica-Oblique', 5)
+    c.drawCentredString(LP / 2, 5 * mm, 'Celebrating Excellence')
 
-    # ════════════════════════════════════════════════════════════════════════
-    # RIGHT PANEL — dark green with QR code
-    # ════════════════════════════════════════════════════════════════════════
-    right_x = LEFT_W + MID_W
-    c.setFillColor(DARK_GREEN)
-    c.rect(right_x, 0, RIGHT_W, PAGE_H, fill=1, stroke=0)
+    # ════════════════════════════════════════════════════════════════
+    # RIGHT PANEL
+    # ════════════════════════════════════════════════════════════════
+    rx = LP + MP
+    c.setFillColor(GREEN)
+    c.rect(rx, 0, RP, H, fill=1, stroke=0)
 
-    # Gold top + bottom stripes
+    # Same shimmer
+    c.saveState()
+    c.setStrokeColor(colors.HexColor('#c9960c'))
+    c.setLineWidth(0.4)
+    c.setStrokeAlpha(0.25)
+    for i in range(-2, 8):
+        c.line(rx + i * 8 * mm, 0, rx + i * 8 * mm + H, H)
+    c.restoreState()
+
+    # Gold bars
     c.setFillColor(GOLD)
-    c.rect(right_x, PAGE_H - 4 * mm, RIGHT_W, 4 * mm, fill=1, stroke=0)
-    c.rect(right_x, 0, RIGHT_W, 4 * mm, fill=1, stroke=0)
-
-    # Gold diagonal accent
-    c.setStrokeColor(GOLD)
-    c.setLineWidth(1.5)
-    c.line(right_x + RIGHT_W * 0.4, PAGE_H - 4 * mm, right_x + RIGHT_W, 0)
+    c.rect(rx, H - 3 * mm, RP, 3 * mm, fill=1, stroke=0)
+    c.rect(rx, 0, RP, 3 * mm, fill=1, stroke=0)
 
     # QR code
-    qr_bytes = generate_qr_image(ticket.qr_token, size=7)
-    qr_size  = 26 * mm
-    qr_x     = right_x + (RIGHT_W - qr_size) / 2
-    qr_y     = PAGE_H / 2 + 2 * mm
+    qr_bytes = generate_qr_image(ticket.qr_token, size=5)
+    qsz = 20 * mm
+    qx  = rx + (RP - qsz) / 2
+    qy  = H / 2 - qsz / 2 + 3 * mm
 
+    # White rounded bg for QR
     c.setFillColor(WHITE)
-    c.roundRect(qr_x - 1.5 * mm, qr_y - 1.5 * mm,
-                qr_size + 3 * mm, qr_size + 3 * mm, 1.5 * mm, fill=1, stroke=0)
-    c.drawImage(ImageReader(io.BytesIO(qr_bytes)), qr_x, qr_y, qr_size, qr_size)
+    c.roundRect(qx - 1.5*mm, qy - 1.5*mm, qsz + 3*mm, qsz + 3*mm, 1*mm, fill=1, stroke=0)
+    c.drawImage(ImageReader(io.BytesIO(qr_bytes)), qx, qy, qsz, qsz)
 
-    c.setFillColor(WHITE)
-    c.setFont('Helvetica-Bold', 5.5)
-    c.drawCentredString(right_x + RIGHT_W / 2, qr_y - 4 * mm, 'SCAN TO VERIFY')
-    c.setFont('Helvetica', 4.5)
-    c.drawCentredString(right_x + RIGHT_W / 2, qr_y - 6.5 * mm, 'YOUR TICKET')
+    c.setFillColor(GOLD_LT)
+    c.setFont('Helvetica-Bold', 4.5)
+    c.drawCentredString(rx + RP / 2, qy - 3 * mm, 'SCAN TO VERIFY')
 
-    c.setFillColor(GOLD_LIGHT)
-    c.setFont('Helvetica-Oblique', 6.5)
-    c.drawCentredString(right_x + RIGHT_W / 2, 8 * mm, 'Celebrating')
-    c.drawCentredString(right_x + RIGHT_W / 2, 5 * mm, 'Excellence')
+    # "Celebrating Excellence"
+    c.setFillColor(GOLD_LT)
+    c.setFont('Helvetica-Oblique', 5)
+    c.drawCentredString(rx + RP / 2, 5 * mm, 'Celebrating Excellence')
 
-    # ════════════════════════════════════════════════════════════════════════
-    # CENTRE PANEL — cream background with ticket details
-    # ════════════════════════════════════════════════════════════════════════
-    mid_x = LEFT_W
-    c.setFillColor(CREAM)
-    c.rect(mid_x, 0, MID_W, PAGE_H, fill=1, stroke=0)
+    # ════════════════════════════════════════════════════════════════
+    # PERFORATED DIVIDERS (dashed lines between panels)
+    # ════════════════════════════════════════════════════════════════
+    c.saveState()
+    c.setStrokeColor(colors.HexColor('#cccccc'))
+    c.setLineWidth(0.5)
+    c.setDash(2, 3)
+    c.line(LP, 3 * mm, LP, H - 3 * mm)
+    c.line(rx, 3 * mm, rx, H - 3 * mm)
+    c.restoreState()
 
-    # Watermark logo
+    # Semicircle notches on dividers
+    for notch_x in [LP, rx]:
+        c.setFillColor(CREAM)
+        c.circle(notch_x, H - 3 * mm, 2.5 * mm, fill=1, stroke=0)
+        c.circle(notch_x, 3 * mm,     2.5 * mm, fill=1, stroke=0)
+
+    # ════════════════════════════════════════════════════════════════
+    # CENTRE PANEL
+    # ════════════════════════════════════════════════════════════════
+    mx = LP
+
+    # Faint watermark logo
     if os.path.exists(logo_path):
-        wm_size = 50 * mm
-        wm_x = mid_x + (MID_W - wm_size) / 2
-        wm_y = (PAGE_H - wm_size) / 2
+        wsz = 40 * mm
+        wx  = mx + (MP - wsz) / 2
+        wy  = (H - wsz) / 2
         c.saveState()
-        c.setFillAlpha(0.07)
-        c.drawImage(
-            ImageReader(logo_path),
-            wm_x, wm_y, wm_size, wm_size,
-            preserveAspectRatio=True, mask='auto',
-        )
+        c.setFillAlpha(0.05)
+        c.drawImage(ImageReader(logo_path), wx, wy, wsz, wsz,
+                    preserveAspectRatio=True, mask='auto')
         c.restoreState()
 
-    # Gold top + bottom stripes
+    # Gold top + bottom bars on centre
     c.setFillColor(GOLD)
-    c.rect(mid_x, PAGE_H - 4 * mm, MID_W, 4 * mm, fill=1, stroke=0)
-    c.rect(mid_x, 0, MID_W, 4 * mm, fill=1, stroke=0)
+    c.rect(mx, H - 3 * mm, MP, 3 * mm, fill=1, stroke=0)
+    c.rect(mx, 0, MP, 3 * mm, fill=1, stroke=0)
 
-    # ── Header ───────────────────────────────────────────────────────────────
-    header_top = PAGE_H - 4 * mm - 4 * mm
+    # ── Header ───────────────────────────────────────────────────────
+    ht = H - 3 * mm - 4.5 * mm   # top of text area
 
-    c.setFillColor(DARK_TEXT)
-    c.setFont('Helvetica-Bold', 5.5)
-    c.drawCentredString(mid_x + MID_W / 2, header_top, 'PANDORA AWARDS  ·  8TH EDITION')
+    c.setFillColor(GREY)
+    c.setFont('Helvetica', 5)
+    c.drawCentredString(mx + MP / 2, ht, 'PANDORA AWARDS  ·  8TH EDITION  ·  ABUJA 2026')
 
-    c.setFont('Helvetica-Bold', 10)
-    c.drawCentredString(mid_x + MID_W / 2, header_top - 6 * mm, 'PANDORA AWARD 8TH EDITION E-TICKET')
+    c.setFillColor(BLACK)
+    c.setFont('Helvetica-Bold', 9.5)
+    c.drawCentredString(mx + MP / 2, ht - 5.5 * mm, 'PANDORA AWARD 8TH EDITION E-TICKET')
 
+    # Gold thin divider
     c.setStrokeColor(GOLD)
-    c.setLineWidth(0.8)
-    c.line(mid_x + 6 * mm, header_top - 8 * mm, mid_x + MID_W - 6 * mm, header_top - 8 * mm)
+    c.setLineWidth(0.6)
+    c.line(mx + 4*mm, ht - 7*mm, mx + MP - 4*mm, ht - 7*mm)
 
-    c.setFillColor(GREY_TEXT)
-    c.setFont('Helvetica', 6)
-    c.drawCentredString(mid_x + MID_W / 2, header_top - 11 * mm, 'YOUR TICKET IS VALID')
+    # ── Guest name — large and prominent ─────────────────────────────
+    gname = ticket.guest.full_name.upper()
+    c.setFillColor(BLACK)
+    # Shrink font if name is long
+    fname_size = 9 if len(gname) <= 22 else 7.5
+    c.setFont('Helvetica-Bold', fname_size)
+    c.drawCentredString(mx + MP / 2, ht - 11.5 * mm, gname[:32])
 
-    # ── Two-column guest details ──────────────────────────────────────────────
-    col1_x = mid_x + 5 * mm
-    col2_x = mid_x + MID_W / 2 + 2 * mm
-    row1_y = header_top - 18 * mm
-    row2_y = row1_y - 11 * mm
-    row3_y = row2_y - 11 * mm
-
-    def draw_field(x, y, label, value, max_chars=24):
-        c.setFillColor(GOLD)
-        c.setFont('Helvetica-Bold', 5)
-        c.drawString(x + 5 * mm, y, label)
-        c.setFillColor(DARK_TEXT)
-        c.setFont('Helvetica', 6.5)
-        c.drawString(x + 5 * mm, y - 3.5 * mm, str(value)[:max_chars])
-
-    def draw_icon(x, y, color=None):
-        ic = color or GOLD
-        c.setFillColor(ic)
-        c.circle(x + 2 * mm, y - 1.5 * mm, 2 * mm, fill=1, stroke=0)
-
-    # Col 1
-    draw_icon(col1_x, row1_y)
-    draw_field(col1_x, row1_y, 'FULL NAME', ticket.guest.full_name)
-
-    draw_icon(col1_x, row2_y)
-    draw_field(col1_x, row2_y, 'EMAIL ADDRESS',
-               ticket.guest.email if ticket.guest.email else ticket.guest.phone_number)
-
-    draw_icon(col1_x, row3_y, colors.HexColor('#8a6400'))
-    draw_field(col1_x, row3_y, 'TICKET TYPE', ticket.ticket_type.name)
-
-    # Col 2
-    draw_icon(col2_x, row1_y)
-    draw_field(col2_x, row1_y, 'EVENT DATE',
-               ticket.event.event_date.strftime('Sunday, %d %B %Y'))
-
-    draw_icon(col2_x, row2_y, colors.HexColor('#8b0000'))
-    draw_field(col2_x, row2_y, 'VENUE', 'A Class Event Center (Sapphire Hall)', max_chars=28)
-    c.setFillColor(GREY_TEXT)
-    c.setFont('Helvetica', 5)
-    c.drawString(col2_x + 5 * mm, row2_y - 7 * mm, 'Along Kashmiri Ibrahim Way, Maitama')
-    c.drawString(col2_x + 5 * mm, row2_y - 9.5 * mm, 'Abuja FCT Nigeria')
-
-    draw_icon(col2_x, row3_y, colors.HexColor('#1a3a00'))
-    draw_field(col2_x, row3_y, 'TICKET NO.', ticket.ticket_number)
-
-    # ── Ticket type badge at bottom ───────────────────────────────────────────
-    badge_y = 5.5 * mm
-    price_map = {
-        'REGULAR':            ('REGULAR',            '₦30,000'),
-        'VIP':                ('VIP',                '₦100,000'),
-        'SPECIAL GUEST SEAT': ('SPECIAL GUEST SEAT', '₦300,000'),
-        'GOLD TABLE':         ('GOLD TABLE',         '₦800,000'),
-        'MEDIA':              ('MEDIA',              'PRESS'),
-        'STAFF':              ('STAFF',              'CREW'),
-    }
+    # Ticket type pill
     ttype = ticket.ticket_type.name.upper()
-    badge_data = price_map.get(ttype)
-    if badge_data:
-        b_label, b_price = badge_data
-        b_w = 28 * mm
-        b_x = mid_x + (MID_W - b_w) / 2
-        c.setFillColor(DARK_GREEN)
-        c.roundRect(b_x, badge_y - 1 * mm, b_w, 7 * mm, 1.5 * mm, fill=1, stroke=0)
-        c.setStrokeColor(GOLD)
-        c.setLineWidth(0.5)
-        c.roundRect(b_x, badge_y - 1 * mm, b_w, 7 * mm, 1.5 * mm, fill=0, stroke=1)
-        c.setFillColor(GOLD)
-        c.setFont('Helvetica-Bold', 5)
-        c.drawCentredString(b_x + b_w / 2, badge_y + 3.5 * mm, b_label)
-        c.setFillColor(WHITE)
-        c.setFont('Helvetica-Bold', 7)
-        c.drawCentredString(b_x + b_w / 2, badge_y + 0.5 * mm, b_price)
+    pill_w = max(len(ttype) * 3.2 + 8, 20) * mm / 10
+    pill_x = mx + MP / 2 - pill_w / 2
+    pill_y = ht - 16.5 * mm
+    c.setFillColor(GREEN)
+    c.roundRect(pill_x, pill_y, pill_w, 4.5 * mm, 2 * mm, fill=1, stroke=0)
+    c.setStrokeColor(GOLD)
+    c.setLineWidth(0.4)
+    c.roundRect(pill_x, pill_y, pill_w, 4.5 * mm, 2 * mm, fill=0, stroke=1)
+    c.setFillColor(GOLD)
+    c.setFont('Helvetica-Bold', 5.5)
+    c.drawCentredString(mx + MP / 2, pill_y + 1.3 * mm, ttype)
 
-    # Ticket number small at bottom left
-    c.setFillColor(GREY_TEXT)
-    c.setFont('Helvetica', 5)
-    c.drawString(mid_x + 5 * mm, 5.5 * mm, f'No. {ticket.ticket_number}')
+    # ── Two-column info grid ──────────────────────────────────────────
+    c1x = mx + 4 * mm
+    c2x = mx + MP / 2 + 2 * mm
+    gy  = ht - 23 * mm
+    gap = 8 * mm
+
+    def cell(x, y, label, val, chars=22):
+        c.setFillColor(GOLD)
+        c.setFont('Helvetica-Bold', 4.5)
+        c.drawString(x, y, label)
+        c.setFillColor(BLACK)
+        c.setFont('Helvetica', 6)
+        c.drawString(x, y - 3.5 * mm, str(val)[:chars])
+
+    # Row 1
+    cell(c1x, gy,       'FULL NAME',    ticket.guest.full_name)
+    cell(c2x, gy,       'EVENT DATE',   ticket.event.event_date.strftime('%A, %d %B %Y'))
+
+    # Row 2
+    cell(c1x, gy - gap, 'PHONE',        ticket.guest.phone_number)
+    cell(c2x, gy - gap, 'TIME',         'Red Carpet 4PM  ·  Main Event 6PM')
+
+    # Row 3
+    cell(c1x, gy - gap*2, 'TICKET NO.', ticket.ticket_number, chars=18)
+    cell(c2x, gy - gap*2, 'VENUE',      'A Class Event Center, Sapphire Hall', chars=28)
+
+    # ── Bottom strip — thin gold line + instruction ───────────────────
+    c.setStrokeColor(GOLD)
+    c.setLineWidth(0.4)
+    c.line(mx + 4*mm, 5*mm, mx + MP - 4*mm, 5*mm)
+
+    c.setFillColor(LGREY)
+    c.setFont('Helvetica-Oblique', 4.5)
+    c.drawCentredString(mx + MP / 2, 3.8 * mm,
+        'This ticket is non-transferable. Present at entrance for verification.')
 
     c.save()
-    return buffer.getvalue()
+    return buf.getvalue()
 
 
 def _draw_photo_placeholder(c, x, y, w, h):
     from reportlab.lib import colors
-    c.setFillColor(colors.HexColor('#2a1500'))
+    c.setFillColor(colors.HexColor('#1a3a20'))
     c.rect(x, y, w, h, fill=1, stroke=0)
     c.setFillColor(colors.HexColor('#c9960c'))
-    c.setFont('Helvetica', 8)
+    c.setFont('Helvetica', 7)
     c.drawCentredString(x + w / 2, y + h / 2, 'PHOTO')

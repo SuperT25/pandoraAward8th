@@ -183,7 +183,24 @@ def ticket_detail(request, pk):
         Ticket.objects.select_related('guest', 'event', 'ticket_type', 'checked_in_by'), pk=pk
     )
     logs = ticket.verification_logs.select_related('staff_user').order_by('-timestamp')[:20]
-    return render(request, 'tickets/ticket_detail.html', {'ticket': ticket, 'logs': logs})
+
+    # Get QR URL — works with both Cloudinary and local storage
+    qr_url = None
+    try:
+        from django.core.files.storage import default_storage
+        qr_path = f"qrcodes/{ticket.ticket_number}.png"
+        if default_storage.exists(qr_path):
+            qr_url = default_storage.url(qr_path)
+        else:
+            # Regenerate on the fly if missing
+            save_qr_to_file(ticket)
+            qr_url = default_storage.url(qr_path)
+    except Exception:
+        qr_url = None
+
+    return render(request, 'tickets/ticket_detail.html', {
+        'ticket': ticket, 'logs': logs, 'qr_url': qr_url,
+    })
 
 
 @login_required

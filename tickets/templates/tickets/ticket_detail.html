@@ -99,21 +99,26 @@
   <div>
     <div class="card" style="text-align:center;">
       <h4 style="margin-bottom:1rem;">QR Code</h4>
-      {% with qr_path="qrcodes/"|add:ticket.ticket_number|add:".png" %}
       <div class="qr-preview" style="margin:0 auto;display:inline-block;">
-        <img src="{{ MEDIA_URL }}{{ qr_path }}" alt="QR Code" style="max-width:180px;display:block;"
+        {% if qr_url %}
+        <img src="{{ qr_url }}" alt="QR Code" style="max-width:180px;display:block;"
              onerror="this.style.display='none';document.getElementById('qr-missing').style.display='block';">
-        <div id="qr-missing" style="display:none;padding:2rem;color:var(--text-muted);font-size:0.8rem;">
-          QR not generated yet.
+        {% endif %}
+        <div id="qr-missing" style="{% if qr_url %}display:none;{% endif %}padding:2rem;color:var(--text-muted);font-size:0.8rem;">
+          QR not generated yet.<br>
+          <a href="{% url 'ticket_detail' ticket.pk %}" class="btn-outline-gold" style="margin-top:0.5rem;font-size:0.75rem;padding:0.3rem 0.75rem;display:inline-block;">
+            <i class="bi bi-arrow-clockwise"></i> Regenerate
+          </a>
         </div>
       </div>
-      {% endwith %}
       <p style="font-size:0.72rem;color:var(--text-muted);margin-top:0.75rem;">
-        For verification use only. Contains no personal data.
+        Scan this code at the entrance to verify the ticket.
       </p>
-      <p style="font-size:0.7rem;color:var(--gold-dark);">
-        Scan URL: /verify/qr/[token]
-      </p>
+      <div style="margin-top:0.75rem;">
+        <a href="{% url 'ticket_download' ticket.pk %}" class="btn-gold" style="font-size:0.78rem;padding:0.4rem 0.9rem;">
+          <i class="bi bi-download"></i> Download PDF Ticket
+        </a>
+      </div>
     </div>
   </div>
 

@@ -19,8 +19,6 @@ services:
         fromDatabase:
           name: pandora-db
           property: connectionString
-      - key: WEB_CONCURRENCY
-        value: "2"
 
 databases:
   - name: pandora-db

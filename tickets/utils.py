@@ -82,8 +82,9 @@ def generate_ticket_pdf(ticket) -> bytes:
     from reportlab.lib.utils import ImageReader
     from reportlab.pdfgen import canvas
 
-    # A5 landscape — wider ticket  210 x 148 mm
-    PAGE_W, PAGE_H = landscape(A5)
+    # Custom size: 210 x 99 mm (panoramic ticket format)
+    PAGE_W = 210 * mm
+    PAGE_H = 99 * mm
 
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=(PAGE_W, PAGE_H))
@@ -118,22 +119,22 @@ def generate_ticket_pdf(ticket) -> bytes:
     c.rect(0, 0, PAGE_W, 5 * mm, fill=1, stroke=0)
 
     # ── HEADER — Pandora Awards title (below the gold top stripe) ───────────
-    header_y = PAGE_H - stripe_h - 8 * mm   # 8mm below stripe bottom
+    header_y = PAGE_H - stripe_h - 7 * mm
 
     # Left vertical gold bar accent
     c.setFillColor(colors.HexColor('#c9960c'))
-    c.rect(8 * mm, PAGE_H - stripe_h - 20 * mm, 2 * mm, 16 * mm, fill=1, stroke=0)
+    c.rect(8 * mm, PAGE_H - stripe_h - 17 * mm, 2 * mm, 13 * mm, fill=1, stroke=0)
 
     c.setFillColor(colors.HexColor('#c9960c'))
-    c.setFont('Helvetica-Bold', 14)
+    c.setFont('Helvetica-Bold', 13)
     c.drawString(14 * mm, header_y, 'PANDORA AWARDS')
 
     c.setFillColor(colors.HexColor('#e8c84a'))
-    c.setFont('Helvetica', 7.5)
-    c.drawString(14 * mm, header_y - 5.5 * mm, '8TH EDITION  ·  LIVE IN ABUJA')
+    c.setFont('Helvetica', 7)
+    c.drawString(14 * mm, header_y - 5 * mm, '8TH EDITION  ·  LIVE IN ABUJA')
 
     # ── Horizontal gold divider ──────────────────────────────────────────────
-    divider_y = PAGE_H - stripe_h - 22 * mm
+    divider_y = PAGE_H - stripe_h - 19 * mm
     c.setStrokeColor(colors.HexColor('#c9960c'))
     c.setLineWidth(0.8)
     c.line(8 * mm, divider_y, PAGE_W - 8 * mm, divider_y)
@@ -141,8 +142,8 @@ def generate_ticket_pdf(ticket) -> bytes:
     # ── Left panel — guest photo ─────────────────────────────────────────────
     photo_x = 8 * mm
     photo_y = 8 * mm
-    photo_w = 48 * mm
-    photo_h = 62 * mm
+    photo_w = 45 * mm
+    photo_h = 55 * mm
 
     # Photo border
     c.setStrokeColor(colors.HexColor('#c9960c'))
@@ -207,8 +208,8 @@ def generate_ticket_pdf(ticket) -> bytes:
     c.drawCentredString(cx + badge_w * mm / mm / 2, badge_y + 1.8 * mm, ttype)
 
     # Event info rows
-    row_y = badge_y - 8 * mm
-    row_gap = 5.5 * mm
+    row_y = badge_y - 7 * mm
+    row_gap = 5 * mm
     info_rows = [
         ('DATE',      ticket.event.event_date.strftime('%A, %d %B %Y').upper()),
         ('TIME',      'RED CARPET 4:00 PM  ·  MAIN EVENT 6:00 PM'),

@@ -5,11 +5,12 @@ QR code generation, PDF ticket generation, IP helper
 
 import io
 import os
+import urllib.request
 import qrcode
 from django.conf import settings
-from django.utils import timezone
 
 SITE_URL = 'https://pandoraaward8th.onrender.com'
+
 
 # ---------------------------------------------------------------------------
 # IP Address helper
@@ -18,7 +19,9 @@ SITE_URL = 'https://pandoraaward8th.onrender.com'
 def get_client_ip(request):
     x_forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded:
-        return x_forwarded.split(',')[0].strip()
+        # Use the LAST value — Render's load balancer appends the real IP last.
+        # The first value is client-controlled and can be forged.
+        return x_forwarded.split(',')[-1].strip()
     return request.META.get('REMOTE_ADDR')
 
 
@@ -28,8 +31,8 @@ def get_client_ip(request):
 
 def generate_qr_image(qr_token: str, size: int = 10) -> bytes:
     """
-    Generate a QR code PNG.
-    Encodes the full live verify URL so scanning opens verification directly.
+    Generate a QR code PNG encoding the full live verify URL.
+    No personal data in the QR — only the token.
     """
     verify_url = f"{SITE_URL}/verify/qr/{qr_token}/"
     qr = qrcode.QRCode(
@@ -47,25 +50,57 @@ def generate_qr_image(qr_token: str, size: int = 10) -> bytes:
 
 
 def save_qr_to_file(ticket) -> str:
-    """Save QR PNG to media/qrcodes/<ticket_number>.png"""
+    """
+    Save QR PNG via Django's default storage backend.
+    Uses Cloudinary in production, local filesystem in development.
+    """
+    from django.core.files.base import ContentFile
+    from django.core.files.storage import default_storage
+
     png_bytes = generate_qr_image(ticket.qr_token)
     rel_path = f"qrcodes/{ticket.ticket_number}.png"
-    abs_path = os.path.join(settings.MEDIA_ROOT, rel_path)
-    os.makedirs(os.path.dirname(abs_path), exist_ok=True)
-    with open(abs_path, 'wb') as f:
-        f.write(png_bytes)
+
+    # Delete existing file to avoid duplicates on Cloudinary
+    try:
+        if default_storage.exists(rel_path):
+            default_storage.delete(rel_path)
+    except Exception:
+        pass
+
+    default_storage.save(rel_path, ContentFile(png_bytes))
     return rel_path
 
 
 # ---------------------------------------------------------------------------
-# PDF Ticket generation — matches official Pandora E-Verification Ticket design
+# Photo loading helper — works with local storage and Cloudinary
+# ---------------------------------------------------------------------------
+
+def _load_photo_reader(photo_field):
+    """Return a ReportLab ImageReader for a Django ImageField, or None."""
+    from reportlab.lib.utils import ImageReader
+    if not photo_field:
+        return None
+    try:
+        url = photo_field.url
+        if url.startswith('http'):
+            with urllib.request.urlopen(url) as resp:
+                return ImageReader(io.BytesIO(resp.read()))
+        else:
+            return ImageReader(photo_field.path)
+    except Exception:
+        return None
+
+
+# ---------------------------------------------------------------------------
+# PDF Ticket generation
+# Layout: Left dark green | Centre cream | Right dark green
+# Size: 210 x 99 mm
 # ---------------------------------------------------------------------------
 
 def generate_ticket_pdf(ticket) -> bytes:
     """
-    Generate a professional Pandora-branded PDF ticket.
-    Layout: Left dark panel | Centre cream panel | Right dark panel
-    Size: 210 x 99 mm
+    Generate the official Pandora Awards E-Ticket PDF.
+    Returns PDF bytes.
     """
     from reportlab.lib.units import mm
     from reportlab.lib import colors
@@ -74,22 +109,21 @@ def generate_ticket_pdf(ticket) -> bytes:
 
     # ── Page setup ──────────────────────────────────────────────────────────
     PAGE_W = 210 * mm
-    PAGE_H = 99  * mm
+    PAGE_H = 99 * mm
 
-    # Colours
-    DARK_GREEN   = colors.HexColor('#0d2818')
-    GOLD         = colors.HexColor('#c9960c')
-    GOLD_LIGHT   = colors.HexColor('#e8c84a')
-    CREAM        = colors.HexColor('#f5f0e8')
-    CREAM_DARK   = colors.HexColor('#e8e0d0')
-    WHITE        = colors.white
-    DARK_TEXT    = colors.HexColor('#1a1a1a')
-    GREY_TEXT    = colors.HexColor('#555555')
+    # Colour palette
+    DARK_GREEN  = colors.HexColor('#0d2818')
+    GOLD        = colors.HexColor('#c9960c')
+    GOLD_LIGHT  = colors.HexColor('#e8c84a')
+    CREAM       = colors.HexColor('#f5f0e8')
+    WHITE       = colors.white
+    DARK_TEXT   = colors.HexColor('#1a1a1a')
+    GREY_TEXT   = colors.HexColor('#555555')
 
     # Panel widths
-    LEFT_W   = 52 * mm
-    RIGHT_W  = 38 * mm
-    MID_W    = PAGE_W - LEFT_W - RIGHT_W  # ~120mm
+    LEFT_W  = 52 * mm
+    RIGHT_W = 38 * mm
+    MID_W   = PAGE_W - LEFT_W - RIGHT_W   # ~120 mm
 
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=(PAGE_W, PAGE_H))
@@ -100,19 +134,17 @@ def generate_ticket_pdf(ticket) -> bytes:
     c.setFillColor(DARK_GREEN)
     c.rect(0, 0, LEFT_W, PAGE_H, fill=1, stroke=0)
 
-    # Gold top stripe on left panel
+    # Gold top + bottom stripes
     c.setFillColor(GOLD)
     c.rect(0, PAGE_H - 4 * mm, LEFT_W, 4 * mm, fill=1, stroke=0)
-
-    # Gold bottom stripe on left panel
     c.rect(0, 0, LEFT_W, 4 * mm, fill=1, stroke=0)
 
-    # Gold diagonal accent line (top-left to bottom)
+    # Gold diagonal accent
     c.setStrokeColor(GOLD)
     c.setLineWidth(1.5)
     c.line(0, PAGE_H - 4 * mm, LEFT_W * 0.6, 0)
 
-    # Logo image
+    # Pandora logo
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'img', 'pandora-logo.jpeg')
     if os.path.exists(logo_path):
         logo_size = 36 * mm
@@ -124,14 +156,13 @@ def generate_ticket_pdf(ticket) -> bytes:
             preserveAspectRatio=True, mask='auto',
         )
     else:
-        # Fallback text logo
         c.setFillColor(GOLD)
         c.setFont('Helvetica-Bold', 11)
         c.drawCentredString(LEFT_W / 2, PAGE_H / 2 + 8 * mm, 'PANDORA')
         c.setFont('Helvetica-Bold', 9)
         c.drawCentredString(LEFT_W / 2, PAGE_H / 2 + 2 * mm, 'AWARDS')
 
-    # "Celebrating Excellence" italic at bottom of left panel
+    # "Celebrating Excellence"
     c.setFillColor(GOLD_LIGHT)
     c.setFont('Helvetica-Oblique', 6.5)
     c.drawCentredString(LEFT_W / 2, 8 * mm, 'Celebrating')
@@ -144,38 +175,33 @@ def generate_ticket_pdf(ticket) -> bytes:
     c.setFillColor(DARK_GREEN)
     c.rect(right_x, 0, RIGHT_W, PAGE_H, fill=1, stroke=0)
 
-    # Gold top stripe on right panel
+    # Gold top + bottom stripes
     c.setFillColor(GOLD)
     c.rect(right_x, PAGE_H - 4 * mm, RIGHT_W, 4 * mm, fill=1, stroke=0)
-
-    # Gold bottom stripe on right panel
     c.rect(right_x, 0, RIGHT_W, 4 * mm, fill=1, stroke=0)
 
-    # Gold diagonal accent line
+    # Gold diagonal accent
     c.setStrokeColor(GOLD)
     c.setLineWidth(1.5)
     c.line(right_x + RIGHT_W * 0.4, PAGE_H - 4 * mm, right_x + RIGHT_W, 0)
 
     # QR code
     qr_bytes = generate_qr_image(ticket.qr_token, size=7)
-    qr_size = 26 * mm
-    qr_x = right_x + (RIGHT_W - qr_size) / 2
-    qr_y = PAGE_H / 2 + 2 * mm
+    qr_size  = 26 * mm
+    qr_x     = right_x + (RIGHT_W - qr_size) / 2
+    qr_y     = PAGE_H / 2 + 2 * mm
 
-    # White bg for QR
     c.setFillColor(WHITE)
     c.roundRect(qr_x - 1.5 * mm, qr_y - 1.5 * mm,
                 qr_size + 3 * mm, qr_size + 3 * mm, 1.5 * mm, fill=1, stroke=0)
     c.drawImage(ImageReader(io.BytesIO(qr_bytes)), qr_x, qr_y, qr_size, qr_size)
 
-    # SCAN TO VERIFY text
     c.setFillColor(WHITE)
     c.setFont('Helvetica-Bold', 5.5)
     c.drawCentredString(right_x + RIGHT_W / 2, qr_y - 4 * mm, 'SCAN TO VERIFY')
     c.setFont('Helvetica', 4.5)
     c.drawCentredString(right_x + RIGHT_W / 2, qr_y - 6.5 * mm, 'YOUR TICKET')
 
-    # "Celebrating Excellence" at bottom of right panel
     c.setFillColor(GOLD_LIGHT)
     c.setFont('Helvetica-Oblique', 6.5)
     c.drawCentredString(right_x + RIGHT_W / 2, 8 * mm, 'Celebrating')
@@ -188,8 +214,7 @@ def generate_ticket_pdf(ticket) -> bytes:
     c.setFillColor(CREAM)
     c.rect(mid_x, 0, MID_W, PAGE_H, fill=1, stroke=0)
 
-    # Watermark logo in centre panel
-    logo_path = os.path.join(settings.BASE_DIR, 'static', 'img', 'pandora-logo.jpeg')
+    # Watermark logo
     if os.path.exists(logo_path):
         wm_size = 50 * mm
         wm_x = mid_x + (MID_W - wm_size) / 2
@@ -203,35 +228,30 @@ def generate_ticket_pdf(ticket) -> bytes:
         )
         c.restoreState()
 
-    # Gold top stripe on centre panel
+    # Gold top + bottom stripes
     c.setFillColor(GOLD)
     c.rect(mid_x, PAGE_H - 4 * mm, MID_W, 4 * mm, fill=1, stroke=0)
-
-    # Gold bottom stripe
     c.rect(mid_x, 0, MID_W, 4 * mm, fill=1, stroke=0)
 
-    # ── Header text ─────────────────────────────────────────────────────────
-    header_top = PAGE_H - 4 * mm - 5 * mm   # 5mm below gold stripe
+    # ── Header ───────────────────────────────────────────────────────────────
+    header_top = PAGE_H - 4 * mm - 5 * mm
 
     c.setFillColor(DARK_TEXT)
     c.setFont('Helvetica-Bold', 6)
     c.drawCentredString(mid_x + MID_W / 2, header_top, 'PANDORA AWARDS  ·  8TH EDITION')
 
-    c.setFillColor(DARK_TEXT)
     c.setFont('Helvetica-Bold', 10.5)
     c.drawCentredString(mid_x + MID_W / 2, header_top - 7 * mm, 'PANDORA AWARD 8TH EDITION E-TICKET')
 
-    # Gold divider line
     c.setStrokeColor(GOLD)
     c.setLineWidth(0.8)
     c.line(mid_x + 6 * mm, header_top - 9 * mm, mid_x + MID_W - 6 * mm, header_top - 9 * mm)
 
-    # "YOUR TICKET IS VALID" subtitle
     c.setFillColor(GREY_TEXT)
     c.setFont('Helvetica', 6.5)
     c.drawCentredString(mid_x + MID_W / 2, header_top - 12.5 * mm, 'YOUR TICKET IS VALID')
 
-    # ── Two-column details ───────────────────────────────────────────────────
+    # ── Two-column guest details ──────────────────────────────────────────────
     col1_x = mid_x + 5 * mm
     col2_x = mid_x + MID_W / 2 + 3 * mm
     row1_y = header_top - 20 * mm
@@ -246,52 +266,46 @@ def generate_ticket_pdf(ticket) -> bytes:
         c.setFont('Helvetica', 7)
         c.drawString(x + 5 * mm, y - 4 * mm, str(value)[:max_chars])
 
-    def draw_icon_circle(x, y, color=GOLD):
-        c.setFillColor(color)
+    def draw_icon(x, y, color=None):
+        ic = color or GOLD
+        c.setFillColor(ic)
         c.circle(x + 2 * mm, y - 1.5 * mm, 2 * mm, fill=1, stroke=0)
 
-    # Col 1 — Row 1: Full Name
-    draw_icon_circle(col1_x, row1_y)
-    c.setFillColor(WHITE)
-    c.setFont('Helvetica-Bold', 5)
-    c.drawCentredString(col1_x + 2 * mm, row1_y - 2 * mm, '✦')
+    # Col 1
+    draw_icon(col1_x, row1_y)
     draw_field(col1_x, row1_y, 'FULL NAME', ticket.guest.full_name)
 
-    # Col 1 — Row 2: Email
-    draw_icon_circle(col1_x, row2_y)
+    draw_icon(col1_x, row2_y)
     draw_field(col1_x, row2_y, 'EMAIL ADDRESS',
                ticket.guest.email if ticket.guest.email else ticket.guest.phone_number)
 
-    # Col 1 — Row 3: Ticket Type
-    draw_icon_circle(col1_x, row3_y, colors.HexColor('#c9960c'))
+    draw_icon(col1_x, row3_y, colors.HexColor('#8a6400'))
     draw_field(col1_x, row3_y, 'TICKET TYPE', ticket.ticket_type.name)
 
-    # Col 2 — Row 1: Event Date
-    draw_icon_circle(col2_x, row1_y)
+    # Col 2
+    draw_icon(col2_x, row1_y)
     draw_field(col2_x, row1_y, 'EVENT DATE',
                ticket.event.event_date.strftime('Sunday, %d %B %Y'))
 
-    # Col 2 — Row 2: Venue
-    draw_icon_circle(col2_x, row2_y, colors.HexColor('#8b0000'))
+    draw_icon(col2_x, row2_y, colors.HexColor('#8b0000'))
     draw_field(col2_x, row2_y, 'VENUE', 'A Class Event Center (Sapphire Hall)', max_chars=32)
     c.setFillColor(GREY_TEXT)
     c.setFont('Helvetica', 5.5)
     c.drawString(col2_x + 5 * mm, row2_y - 8.5 * mm, 'Along Kashmiri Ibrahim Way, Maitama')
     c.drawString(col2_x + 5 * mm, row2_y - 11.5 * mm, 'Abuja FCT Nigeria')
 
-    # Col 2 — Row 3: Ticket number
-    draw_icon_circle(col2_x, row3_y, colors.HexColor('#1a3a00'))
+    draw_icon(col2_x, row3_y, colors.HexColor('#1a3a00'))
     draw_field(col2_x, row3_y, 'TICKET NO.', ticket.ticket_number)
 
-    # ── Ticket type price badges ─────────────────────────────────────────────
+    # ── Ticket type badge at bottom ───────────────────────────────────────────
     badge_y = 5.5 * mm
     price_map = {
-        'REGULAR':            ('REGULAR',           '₦30,000'),
-        'VIP':                ('VIP',               '₦100,000'),
-        'SPECIAL GUEST SEAT': ('SPECIAL GUEST SEAT','₦300,000'),
-        'GOLD TABLE':         ('GOLD TABLE',        '₦800,000'),
-        'MEDIA':              ('MEDIA',             'PRESS'),
-        'STAFF':              ('STAFF',             'CREW'),
+        'REGULAR':            ('REGULAR',            '₦30,000'),
+        'VIP':                ('VIP',                '₦100,000'),
+        'SPECIAL GUEST SEAT': ('SPECIAL GUEST SEAT', '₦300,000'),
+        'GOLD TABLE':         ('GOLD TABLE',         '₦800,000'),
+        'MEDIA':              ('MEDIA',              'PRESS'),
+        'STAFF':              ('STAFF',              'CREW'),
     }
     ttype = ticket.ticket_type.name.upper()
     badge_data = price_map.get(ttype)
@@ -311,7 +325,7 @@ def generate_ticket_pdf(ticket) -> bytes:
         c.setFont('Helvetica-Bold', 7)
         c.drawCentredString(b_x + b_w / 2, badge_y + 0.5 * mm, b_price)
 
-    # Ticket number small at bottom left of centre
+    # Ticket number small at bottom left
     c.setFillColor(GREY_TEXT)
     c.setFont('Helvetica', 5)
     c.drawString(mid_x + 5 * mm, 5.5 * mm, f'No. {ticket.ticket_number}')

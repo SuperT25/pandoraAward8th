@@ -11,6 +11,9 @@ from decouple import config, Csv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Cloudinary URL (set in Render env vars)
+CLOUDINARY_URL = config('CLOUDINARY_URL', default=None)
+
 # ---------------------------------------------------------------------------
 # SECURITY
 # ---------------------------------------------------------------------------
@@ -44,6 +47,10 @@ INSTALLED_APPS = [
     # Local
     'tickets',
 ]
+
+# Add Cloudinary only when configured
+if CLOUDINARY_URL:
+    INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -131,17 +138,28 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        # Use Cloudinary in production for permanent media storage (photos, QR codes)
+        # Falls back to local filesystem in development
+        "BACKEND": (
+            "cloudinary_storage.storage.MediaCloudinaryStorage"
+            if CLOUDINARY_URL
+            else "django.core.files.storage.FileSystemStorage"
+        ),
     },
 }
 
 # ---------------------------------------------------------------------------
-# Media files (uploaded photos, QR codes)
-# Render's disk is ephemeral — media survives only while instance is running.
-# For permanent storage, upgrade to Render Disk or use Cloudinary/S3.
+# Media files — Cloudinary in production, local filesystem in development
 # ---------------------------------------------------------------------------
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Cloudinary config — parsed automatically from CLOUDINARY_URL env var
+if CLOUDINARY_URL:
+    import cloudinary
+    import cloudinary.uploader
+    import cloudinary.api
+    # django-cloudinary-storage reads CLOUDINARY_URL automatically
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

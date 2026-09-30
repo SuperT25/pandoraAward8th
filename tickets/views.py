@@ -248,6 +248,7 @@ def verify_portal(request):
 
 @login_required
 @verify_staff_required
+@require_POST
 def verify_search(request):
     """POST — search by ticket number or phone number."""
     query = request.POST.get('query', '').strip()
@@ -422,14 +423,23 @@ def walkin_register(request):
 
 
 @login_required
+@login_required
 @verify_staff_required
 def verify_result_direct(request, pk):
-    """Directly show verify result for a freshly generated walk-in ticket."""
+    """Show verify result for a freshly generated walk-in ticket.
+    Result is derived from actual ticket status — never hardcoded."""
     ticket = get_object_or_404(
         Ticket.objects.select_related('guest', 'event', 'ticket_type', 'checked_in_by'), pk=pk
     )
+    # Derive result from real ticket status — fixes hardcoded VALID bypass
+    if ticket.is_active:
+        result = 'VALID'
+    elif ticket.is_used:
+        result = 'ALREADY_USED'
+    else:
+        result = 'CANCELLED'
     return render(request, 'tickets/verify_result.html', {
-        'result': 'VALID', 'ticket': ticket,
+        'result': result, 'ticket': ticket,
     })
 
 

@@ -318,9 +318,10 @@ def verify_search(request):
 
 
 @login_required
+@login_required
 @verify_staff_required
 def verify_by_qr(request, qr_token):
-    """Called by QR scanner redirect: /verify/qr/<token>/"""
+    """Called by QR scanner — token is a 32-char hex UUID."""
     ip = get_client_ip(request)
     ticket = Ticket.objects.filter(qr_token=qr_token).select_related(
         'guest', 'event', 'ticket_type', 'checked_in_by'
@@ -338,6 +339,29 @@ def verify_by_qr(request, qr_token):
 
     _log_verify(ticket, request.user, ip, f"QR: {qr_token[:8]}...")
     return _render_ticket_result(request, ticket)
+
+
+@login_required
+@verify_staff_required
+def verify_by_qr_catchall(request, raw_path):
+    """
+    Catchall for malformed QR paths.
+    Extracts the 32-char hex token from anywhere in the path.
+    Handles cases like: /verify/qr/https://domain/verify/qr/TOKEN/
+    """
+    import re as _re
+    match = _re.search(r'[a-f0-9]{32}', raw_path)
+    if match:
+        return verify_by_qr(request, qr_token=match.group(0))
+    ip = get_client_ip(request)
+    VerificationLog.objects.create(
+        ticket=None, staff_user=request.user,
+        action=VerificationLog.Action.VERIFY,
+        result=VerificationLog.Result.INVALID,
+        ip_address=ip,
+        notes=f"QR catchall — no token found in: {raw_path[:50]}",
+    )
+    return render(request, 'tickets/verify_result.html', {'result': 'INVALID', 'query': raw_path})
 
 
 def _log_verify(ticket, user, ip, notes=''):

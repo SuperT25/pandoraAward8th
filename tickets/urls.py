@@ -28,9 +28,9 @@ urlpatterns = [
     # Verification portal
     path('verify/', views.verify_portal, name='verify_portal'),
     path('verify/search/', views.verify_search, name='verify_search'),
-    # Accept both 32-char hex token and full URL (for backward compat with old QR codes)
+    # Catch-all QR pattern — extracts token regardless of what's in the path
     re_path(r'^verify/qr/(?P<qr_token>[a-f0-9]{32})/$', views.verify_by_qr, name='verify_by_qr'),
-    re_path(r'^verify/qr/.+/(?P<qr_token>[a-f0-9]{32})/$', views.verify_by_qr, name='verify_by_qr_legacy'),
+    re_path(r'^verify/qr/(?P<raw_path>.+)$', views.verify_by_qr_catchall, name='verify_by_qr_catchall'),
     path('verify/direct/<int:pk>/', views.verify_result_direct, name='verify_result_direct'),
 
     # Check-in

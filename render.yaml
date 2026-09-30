@@ -3,7 +3,7 @@ services:
   - type: web
     name: pandora-eticket
     runtime: python
-    buildCommand: "./build.sh"
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --no-input && python manage.py migrate --no-input && python manage.py seed_data"
     startCommand: "gunicorn pandora.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
     plan: free
 

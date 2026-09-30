@@ -37,18 +37,21 @@ body {
   font-size: 15px;
 }
 
-/* Dark overlay so content stays readable over the background */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background: rgba(5, 2, 0, 0.82);
+  background: rgba(5, 2, 0, 0.83);
   z-index: 0;
   pointer-events: none;
 }
 
 .layout-wrapper,
-.login-page {
+.login-page,
+.sidebar,
+.main-content,
+.top-bar,
+.content-body {
   position: relative;
   z-index: 1;
 }

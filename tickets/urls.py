@@ -2,7 +2,7 @@
 Pandora E-Ticket System — URL Configuration
 """
 
-from django.urls import path
+from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
@@ -28,7 +28,8 @@ urlpatterns = [
     # Verification portal
     path('verify/', views.verify_portal, name='verify_portal'),
     path('verify/search/', views.verify_search, name='verify_search'),
-    path('verify/qr/<slug:qr_token>/', views.verify_by_qr, name='verify_by_qr'),
+    # QR token is a 32-char hex UUID — use regex to match exactly that
+    re_path(r'^verify/qr/(?P<qr_token>[a-f0-9]{32})/$', views.verify_by_qr, name='verify_by_qr'),
     path('verify/direct/<int:pk>/', views.verify_result_direct, name='verify_result_direct'),
 
     # Check-in

@@ -34,8 +34,7 @@ def generate_qr_image(qr_token: str, size: int = 10) -> bytes:
     Generate a QR code PNG encoding the full live verify URL.
     No personal data in the QR — only the token.
     """
-    verify_url = f"{SITE_URL}/verify/qr/{qr_token}/"
-    qr = qrcode.QRCode(
+    verify_url = f"{SITE_URL}/verify/qr/{qr_token}/"    qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_H,
         box_size=size,

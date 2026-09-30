@@ -28,6 +28,7 @@ def get_client_ip(request):
 # ---------------------------------------------------------------------------
 
 def generate_qr_image(qr_token: str, size: int = 8) -> bytes:
+    # QR encodes the full verify URL so phone camera opens it directly
     verify_url = f"{SITE_URL}/verify/qr/{qr_token}/"
     qr = qrcode.QRCode(
         version=1,

@@ -1,0 +1,41 @@
+{% comment %}Reusable ticket information rows{% endcomment %}
+<div style="display:flex;flex-direction:column;gap:0.15rem;">
+  <div class="verify-info-row">
+    <span class="label">Event</span>
+    <span class="value">{{ ticket.event.event_name }}</span>
+  </div>
+  <div class="verify-info-row">
+    <span class="label">Date</span>
+    <span class="value">{{ ticket.event.event_date|date:"l, d F Y" }}</span>
+  </div>
+  <div class="verify-info-row">
+    <span class="label">Time</span>
+    <span class="value">Red Carpet 4:00 PM · Main Event 6:00 PM</span>
+  </div>
+  <div class="verify-info-row">
+    <span class="label">Venue</span>
+    <span class="value" style="text-align:right;">{{ ticket.event.venue }}</span>
+  </div>
+  <div class="verify-info-row">
+    <span class="label">Ticket Type</span>
+    <span class="value">{{ ticket.ticket_type.name }}</span>
+  </div>
+  <div class="verify-info-row">
+    <span class="label">Ticket No.</span>
+    <span class="value ticket-number-display">{{ ticket.ticket_number }}</span>
+  </div>
+  <div class="verify-info-row">
+    <span class="label">Issued</span>
+    <span class="value">{{ ticket.issued_at|date:"d M Y, g:i A" }}</span>
+  </div>
+  {% if ticket.checked_in_at %}
+  <div class="verify-info-row">
+    <span class="label">Checked In At</span>
+    <span class="value text-green">{{ ticket.checked_in_at|date:"d M Y, g:i A" }}</span>
+  </div>
+  <div class="verify-info-row">
+    <span class="label">Checked In By</span>
+    <span class="value">{{ ticket.checked_in_by.get_full_name|default:ticket.checked_in_by.username|default:"—" }}</span>
+  </div>
+  {% endif %}
+</div>

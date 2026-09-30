@@ -1,0 +1,91 @@
+{% extends 'tickets/base.html' %}
+{% block title %}Reports — Pandora E-Ticket{% endblock %}
+{% block page_title %}Reports & Export{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h3><i class="bi bi-bar-chart"></i> Attendance Report</h3>
+    <a href="{% url 'reports_export_csv' %}?source={{ source_filter }}&status={{ status_filter }}&ticket_type={{ ttype_filter }}"
+       class="btn-gold">
+      <i class="bi bi-download"></i> Export CSV
+    </a>
+  </div>
+
+  <!-- Filters -->
+  <form method="get" style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem;">
+    <select name="source" style="width:auto;">
+      <option value="">All Sources</option>
+      <option value="PRE_REGISTERED" {% if source_filter == 'PRE_REGISTERED' %}selected{% endif %}>Pre-Registered</option>
+      <option value="WALK_IN"        {% if source_filter == 'WALK_IN'        %}selected{% endif %}>Walk-In</option>
+    </select>
+    <select name="status" style="width:auto;">
+      <option value="">All Statuses</option>
+      <option value="ACTIVE"    {% if status_filter == 'ACTIVE'    %}selected{% endif %}>Active</option>
+      <option value="USED"      {% if status_filter == 'USED'      %}selected{% endif %}>Used (Checked In)</option>
+      <option value="CANCELLED" {% if status_filter == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+    </select>
+    <select name="ticket_type" style="width:auto;">
+      <option value="">All Types</option>
+      {% for tt in ticket_types %}
+      <option value="{{ tt.name }}" {% if ttype_filter == tt.name %}selected{% endif %}>{{ tt.name }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn-gold"><i class="bi bi-funnel"></i> Filter</button>
+    <a href="{% url 'reports' %}" class="btn-outline-gold"><i class="bi bi-x"></i> Clear</a>
+  </form>
+
+  <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.75rem;">
+    Showing <strong>{{ tickets|length }}</strong> ticket(s)
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Guest Name</th>
+          <th>Phone</th>
+          <th>Ticket No.</th>
+          <th>Type</th>
+          <th>Source</th>
+          <th>Status</th>
+          <th>Issued</th>
+          <th>Check-In Time</th>
+          <th>Verified By</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tickets %}
+        <tr>
+          <td>{{ t.guest.full_name }}</td>
+          <td>{{ t.guest.phone_number }}</td>
+          <td><span class="ticket-number-display">{{ t.ticket_number }}</span></td>
+          <td>{{ t.ticket_type.name }}</td>
+          <td>
+            {% if t.guest.registration_source == 'WALK_IN' %}
+            <span class="badge badge-walkin">Walk-In</span>
+            {% else %}
+            <span class="badge badge-preregistered">Pre-Reg</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if t.status == 'ACTIVE' %}<span class="badge badge-active">Active</span>
+            {% elif t.status == 'USED' %}<span class="badge badge-used">Used</span>
+            {% else %}<span class="badge badge-cancelled">Cancelled</span>{% endif %}
+          </td>
+          <td style="font-size:0.8rem;color:var(--text-muted);">{{ t.issued_at|date:"d M Y" }}</td>
+          <td style="font-size:0.8rem;color:var(--text-muted);">
+            {% if t.checked_in_at %}{{ t.checked_in_at|date:"d M Y, g:i A" }}{% else %}—{% endif %}
+          </td>
+          <td style="font-size:0.8rem;">{{ t.checked_in_by.get_full_name|default:t.checked_in_by.username|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="9" style="text-align:center;padding:2rem;color:var(--text-muted);">No records found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

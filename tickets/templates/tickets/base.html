@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Pandora Awards — E-Ticket System{% endblock %}</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/pandora.css' %}">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="layout-wrapper">
+
+  <!-- ── SIDEBAR ── -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-title">🏆 PANDORA</span>
+      <span class="brand-sub">Awards E-Ticket System</span>
+    </div>
+
+    <div class="sidebar-nav">
+
+      <span class="nav-section-label">Main</span>
+      <a href="{% url 'dashboard' %}"><span class="icon"><i class="bi bi-speedometer2"></i></span> Dashboard</a>
+      <a href="{% url 'verify_portal' %}"><span class="icon"><i class="bi bi-qr-code-scan"></i></span> Verify Ticket</a>
+
+      {% if user.profile.can_register_walkin %}
+      <a href="{% url 'walkin_register' %}"><span class="icon"><i class="bi bi-person-plus"></i></span> Walk-In Registration</a>
+      {% endif %}
+
+      {% if user.profile.is_ticket_admin %}
+      <span class="nav-section-label">Tickets</span>
+      <a href="{% url 'guest_create' %}"><span class="icon"><i class="bi bi-person-badge"></i></span> Register Guest</a>
+      <a href="{% url 'guest_list' %}"><span class="icon"><i class="bi bi-people"></i></span> Guests</a>
+      <a href="{% url 'ticket_list' %}"><span class="icon"><i class="bi bi-ticket-perforated"></i></span> All Tickets</a>
+      {% endif %}
+
+      {% if user.profile.is_super_admin %}
+      <span class="nav-section-label">Admin</span>
+      <a href="{% url 'event_list' %}"><span class="icon"><i class="bi bi-calendar-event"></i></span> Events</a>
+      <a href="{% url 'tickettype_list' %}"><span class="icon"><i class="bi bi-tags"></i></span> Ticket Types</a>
+      <a href="{% url 'staff_list' %}"><span class="icon"><i class="bi bi-person-gear"></i></span> Staff Accounts</a>
+      {% endif %}
+
+      {% if user.profile.is_ticket_admin %}
+      <span class="nav-section-label">Reports</span>
+      <a href="{% url 'reports' %}"><span class="icon"><i class="bi bi-bar-chart"></i></span> Reports & Export</a>
+      <a href="{% url 'verification_log' %}"><span class="icon"><i class="bi bi-journal-check"></i></span> Verification Log</a>
+      {% endif %}
+
+    </div>
+
+    <div class="sidebar-footer">
+      <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+      <span class="user-role">{{ user.profile.get_role_display }}</span>
+      <br>
+      <a href="{% url 'logout' %}" style="color:#ff6b6b;font-size:0.8rem;">
+        <i class="bi bi-box-arrow-right"></i> Sign Out
+      </a>
+    </div>
+  </nav>
+
+  <!-- ── MAIN CONTENT ── -->
+  <div class="main-content">
+
+    <div class="top-bar">
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <i class="bi bi-list"></i>
+      </button>
+      <h1 class="page-title">{% block page_title %}Pandora E-Ticket{% endblock %}</h1>
+      <div style="font-size:0.75rem;color:var(--text-muted);">
+        Pandora Awards 8th Edition
+      </div>
+    </div>
+
+    <div class="content-body">
+
+      <!-- Django messages -->
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-auto-dismiss">
+        {% if message.tags == 'error' %}<i class="bi bi-exclamation-circle"></i>
+        {% elif message.tags == 'success' %}<i class="bi bi-check-circle"></i>
+        {% else %}<i class="bi bi-info-circle"></i>{% endif %}
+        {{ message }}
+      </div>
+      {% endfor %}
+
+      {% block content %}{% endblock %}
+
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/pandora.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

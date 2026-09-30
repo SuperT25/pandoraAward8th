@@ -1,0 +1,34 @@
+services:
+  # ── Web Service ──────────────────────────────────────────────────────────
+  - type: web
+    name: pandora-eticket
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn pandora.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+    plan: free
+
+    envVars:
+      - key: DEBUG
+        value: False
+      - key: SECRET_KEY
+        generateValue: true          # Render auto-generates a secure random key
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"       # Render adds your full domain automatically
+      - key: DATABASE_URL
+        fromDatabase:
+          name: pandora-db
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+
+    disk:
+      name: pandora-media
+      mountPath: /opt/render/project/src/media
+      sizeGB: 1                       # 1 GB for guest photos & QR codes
+
+  # ── PostgreSQL Database ──────────────────────────────────────────────────
+databases:
+  - name: pandora-db
+    plan: free
+    databaseName: pandora_eticket
+    user: pandora_admin

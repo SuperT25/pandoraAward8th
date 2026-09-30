@@ -1,0 +1,94 @@
+{% extends 'tickets/base.html' %}
+{% block title %}{{ guest.full_name }} — Pandora E-Ticket{% endblock %}
+{% block page_title %}Guest Detail{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:280px 1fr;gap:1.25rem;align-items:start;">
+
+  <!-- Left: photo + info -->
+  <div class="card" style="text-align:center;">
+    {% if guest.photo %}
+    <img src="{{ guest.photo.url }}" alt="{{ guest.full_name }}"
+         style="width:160px;height:160px;border-radius:50%;object-fit:cover;border:3px solid var(--gold);margin:0 auto 1rem;">
+    {% else %}
+    <div style="width:160px;height:160px;border-radius:50%;background:var(--dark3);border:3px solid var(--gold-dark);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:4rem;color:var(--gold-dark);">
+      <i class="bi bi-person"></i>
+    </div>
+    {% endif %}
+
+    <h3 style="margin:0;">{{ guest.full_name }}</h3>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin:4px 0;">{{ guest.phone_number }}</p>
+    {% if guest.email %}<p style="color:var(--text-muted);font-size:0.8rem;margin:2px 0;">{{ guest.email }}</p>{% endif %}
+
+    <div style="margin-top:0.75rem;">
+      {% if guest.registration_source == 'WALK_IN' %}
+      <span class="badge badge-walkin">Walk-In</span>
+      {% else %}
+      <span class="badge badge-preregistered">Pre-Registered</span>
+      {% endif %}
+    </div>
+
+    <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.75rem;">
+      Registered {{ guest.created_at|date:"d M Y, g:i A" }}
+    </p>
+
+    <!-- Update photo -->
+    <hr style="border-color:var(--dark3);">
+    <p style="font-size:0.8rem;color:var(--gold-light);margin-bottom:0.5rem;">Update Photo</p>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ photo_form.photo }}
+      <button type="submit" class="btn-outline-gold" style="width:100%;margin-top:0.5rem;justify-content:center;">
+        <i class="bi bi-camera"></i> Update
+      </button>
+    </form>
+  </div>
+
+  <!-- Right: tickets -->
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="bi bi-ticket-perforated"></i> Tickets ({{ tickets|length }})</h3>
+      </div>
+
+      {% for ticket in tickets %}
+      <div style="background:var(--dark2);border:1px solid var(--dark3);border-radius:10px;padding:1rem;margin-bottom:0.75rem;">
+        <div class="flex-between" style="flex-wrap:wrap;gap:0.5rem;">
+          <div>
+            <span class="ticket-number-display">{{ ticket.ticket_number }}</span>
+            <span style="margin-left:0.5rem;">{{ ticket.ticket_type.name }}</span>
+          </div>
+          <div style="display:flex;gap:0.4rem;align-items:center;">
+            {% if ticket.status == 'ACTIVE' %}
+            <span class="badge badge-active">Active</span>
+            {% elif ticket.status == 'USED' %}
+            <span class="badge badge-used">Used</span>
+            {% else %}
+            <span class="badge badge-cancelled">Cancelled</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.4rem;">
+          {{ ticket.event.event_name }} &nbsp;·&nbsp; Issued {{ ticket.issued_at|date:"d M Y" }}
+          {% if ticket.checked_in_at %}
+          &nbsp;·&nbsp; ✅ Checked in {{ ticket.checked_in_at|date:"d M Y, g:i A" }}
+          {% endif %}
+        </div>
+
+        <div style="display:flex;gap:0.5rem;margin-top:0.75rem;flex-wrap:wrap;">
+          <a href="{% url 'ticket_detail' ticket.pk %}" class="btn-outline-gold" style="font-size:0.78rem;padding:0.3rem 0.75rem;">
+            <i class="bi bi-eye"></i> View
+          </a>
+          <a href="{% url 'ticket_download' ticket.pk %}" class="btn-outline-gold" style="font-size:0.78rem;padding:0.3rem 0.75rem;">
+            <i class="bi bi-download"></i> Download PDF
+          </a>
+        </div>
+      </div>
+      {% empty %}
+      <p style="color:var(--text-muted);text-align:center;padding:1rem;">No tickets for this guest.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'tickets/base.html' %}
+{% block title %}Cancel Ticket — Pandora E-Ticket{% endblock %}
+{% block page_title %}Cancel Ticket{% endblock %}
+
+{% block content %}
+<div style="max-width:480px;margin:0 auto;">
+  <div class="card" style="border-color:#7a0000;text-align:center;">
+    <div style="font-size:3rem;margin-bottom:0.5rem;">⚠️</div>
+    <h3 style="color:var(--red-warn);">Cancel This Ticket?</h3>
+    <p style="color:var(--text-muted);">
+      Ticket <strong class="ticket-number-display">{{ ticket.ticket_number }}</strong><br>
+      Guest: <strong>{{ ticket.guest.full_name }}</strong><br>
+      Type: <strong>{{ ticket.ticket_type.name }}</strong>
+    </p>
+    <p style="color:var(--red-warn);font-size:0.875rem;">
+      This action is permanent. The ticket will be marked <strong>CANCELLED</strong>
+      and cannot be used for admission.
+    </p>
+    <div style="display:flex;gap:0.75rem;justify-content:center;margin-top:1rem;">
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn-danger-pandora">
+          <i class="bi bi-x-circle"></i> Yes, Cancel Ticket
+        </button>
+      </form>
+      <a href="{% url 'ticket_detail' ticket.pk %}" class="btn-outline-gold">
+        <i class="bi bi-arrow-left"></i> Go Back
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

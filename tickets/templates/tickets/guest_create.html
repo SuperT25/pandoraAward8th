@@ -1,0 +1,81 @@
+{% extends 'tickets/base.html' %}
+{% block title %}Register Guest — Pandora E-Ticket{% endblock %}
+{% block page_title %}Register Guest{% endblock %}
+
+{% block content %}
+<div style="max-width:680px;">
+
+  <div class="card">
+    <div class="card-header">
+      <h3><i class="bi bi-person-badge"></i> Pre-Registered Guest</h3>
+      <span class="badge badge-preregistered">PRE-REGISTERED</span>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+
+      <h4 style="color:var(--gold-light);font-size:0.9rem;margin-bottom:1rem;text-transform:uppercase;letter-spacing:1px;">
+        Guest Information
+      </h4>
+
+      <div class="form-group">
+        <label>Full Name *</label>
+        {{ guest_form.full_name }}
+        {% for e in guest_form.full_name.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-group">
+          <label>Phone Number *</label>
+          {{ guest_form.phone_number }}
+          {% for e in guest_form.phone_number.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+        </div>
+        <div class="form-group">
+          <label>Email (optional)</label>
+          {{ guest_form.email }}
+          {% for e in guest_form.email.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label><i class="bi bi-camera"></i> Guest Photograph *</label>
+        <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:0.4rem;">
+          Upload a clear face photo. This will appear on the ticket and be shown during verification.
+          Max 5 MB, JPEG/PNG/WEBP.
+        </p>
+        {{ guest_form.photo }}
+        {% for e in guest_form.photo.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+      </div>
+
+      <hr style="border-color:var(--dark3);margin:1.25rem 0;">
+
+      <h4 style="color:var(--gold-light);font-size:0.9rem;margin-bottom:1rem;text-transform:uppercase;letter-spacing:1px;">
+        Ticket Details
+      </h4>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-group">
+          <label>Event *</label>
+          {{ ticket_form.event }}
+          {% for e in ticket_form.event.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+        </div>
+        <div class="form-group">
+          <label>Ticket Type *</label>
+          {{ ticket_form.ticket_type }}
+          {% for e in ticket_form.ticket_type.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+        </div>
+      </div>
+
+      <div style="display:flex;gap:0.75rem;margin-top:1.25rem;flex-wrap:wrap;">
+        <button type="submit" class="btn-gold">
+          <i class="bi bi-ticket-perforated"></i> Generate Ticket
+        </button>
+        <a href="{% url 'guest_list' %}" class="btn-outline-gold">
+          <i class="bi bi-arrow-left"></i> Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

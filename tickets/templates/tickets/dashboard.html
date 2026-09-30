@@ -1,0 +1,147 @@
+{% extends 'tickets/base.html' %}
+{% block title %}Dashboard — Pandora E-Ticket{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+{% if active_event %}
+<div class="card" style="border-color:var(--gold-dark);background:linear-gradient(135deg,var(--dark2),var(--dark));">
+  <div class="flex-between">
+    <div>
+      <h2 style="margin:0;font-size:1.3rem;">🏆 {{ active_event.event_name }}</h2>
+      <p style="color:var(--text-muted);margin:4px 0 0;font-size:0.875rem;">
+        <i class="bi bi-calendar3"></i> {{ active_event.event_date|date:"l, d F Y" }} &nbsp;·&nbsp;
+        <i class="bi bi-clock"></i> Red Carpet: {{ active_event.event_time|time:"g:i A" }} &nbsp;·&nbsp;
+        <i class="bi bi-geo-alt"></i> {{ active_event.venue }}
+      </p>
+    </div>
+    <span class="badge badge-active">ACTIVE</span>
+  </div>
+</div>
+{% endif %}
+
+<!-- Stats Grid -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-value">{{ total }}</div>
+    <div class="stat-label">Total Registered</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color:#5aacff;">{{ pre_reg }}</div>
+    <div class="stat-label">Pre-Registered</div>
+  </div>
+  <div class="stat-card orange">
+    <div class="stat-value">{{ walk_in }}</div>
+    <div class="stat-label">Walk-In</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-value">{{ checked_in }}</div>
+    <div class="stat-label">Checked In</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color:var(--gold-light);">{{ not_checked_in }}</div>
+    <div class="stat-label">Not Checked In</div>
+  </div>
+  <div class="stat-card red">
+    <div class="stat-value">{{ cancelled }}</div>
+    <div class="stat-label">Cancelled</div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;">
+
+  <!-- Ticket type breakdown -->
+  <div class="card">
+    <div class="card-header">
+      <h3><i class="bi bi-tags"></i> Ticket Categories</h3>
+    </div>
+    {% if breakdown %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Total</th>
+            <th>Checked In</th>
+            <th>Remaining</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in breakdown %}
+          <tr>
+            <td>{{ row.name }}</td>
+            <td>{{ row.total }}</td>
+            <td class="text-green">{{ row.used }}</td>
+            <td style="color:var(--gold-light);">{{ row.total|add:"-"|add:row.used }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p style="color:var(--text-muted);text-align:center;padding:1rem;">No tickets issued yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Quick actions -->
+  <div class="card">
+    <div class="card-header">
+      <h3><i class="bi bi-lightning-charge"></i> Quick Actions</h3>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.6rem;">
+      <a href="{% url 'verify_portal' %}" class="btn-gold">
+        <i class="bi bi-qr-code-scan"></i> Verify / Check-In
+      </a>
+      {% if user.profile.can_register_walkin %}
+      <a href="{% url 'walkin_register' %}" class="btn-outline-gold">
+        <i class="bi bi-person-plus"></i> Walk-In Registration
+      </a>
+      {% endif %}
+      {% if user.profile.is_ticket_admin %}
+      <a href="{% url 'guest_create' %}" class="btn-outline-gold">
+        <i class="bi bi-person-badge"></i> Register Guest
+      </a>
+      <a href="{% url 'reports' %}" class="btn-outline-gold">
+        <i class="bi bi-download"></i> Export Report
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<!-- Recent Check-ins -->
+{% if recent_checkins %}
+<div class="card">
+  <div class="card-header">
+    <h3><i class="bi bi-clock-history"></i> Recent Check-ins</h3>
+    <a href="{% url 'ticket_list' %}?status=USED" class="btn-outline-gold" style="font-size:0.75rem;padding:0.3rem 0.75rem;">View All</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Ticket No.</th>
+          <th>Guest</th>
+          <th>Type</th>
+          <th>Checked In At</th>
+          <th>By</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in recent_checkins %}
+        <tr>
+          <td><span class="ticket-number-display">{{ t.ticket_number }}</span></td>
+          <td>{{ t.guest.full_name }}</td>
+          <td>{{ t.ticket_type.name }}</td>
+          <td>{{ t.checked_in_at|date:"d M Y, g:i A" }}</td>
+          <td>{{ t.checked_in_by.get_full_name|default:t.checked_in_by.username }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

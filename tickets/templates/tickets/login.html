@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Pandora E-Ticket System</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/pandora.css' %}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+<div class="login-page">
+  <div class="login-card">
+
+    <div class="login-logo">
+      <h1>🏆 PANDORA</h1>
+      <p>Awards E-Ticket System</p>
+      <p style="font-size:0.75rem;color:var(--gold-dark);margin-top:4px;">8TH EDITION · LIVE IN ABUJA 2026</p>
+    </div>
+
+    {% for message in messages %}
+    <div class="alert alert-error">
+      <i class="bi bi-exclamation-circle"></i> {{ message }}
+    </div>
+    {% endfor %}
+
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label for="username"><i class="bi bi-person"></i> Username</label>
+        <input type="text" id="username" name="username" required autofocus
+               autocomplete="username" placeholder="Enter your username">
+      </div>
+
+      <div class="form-group">
+        <label for="password"><i class="bi bi-lock"></i> Password</label>
+        <input type="password" id="password" name="password" required
+               autocomplete="current-password" placeholder="Enter your password">
+      </div>
+
+      {% if request.GET.next %}
+      <input type="hidden" name="next" value="{{ request.GET.next }}">
+      {% endif %}
+
+      <button type="submit" class="btn-gold w-100" style="margin-top:1.2rem;justify-content:center;padding:0.85rem;">
+        <i class="bi bi-box-arrow-in-right"></i> Sign In
+      </button>
+    </form>
+
+    <p style="text-align:center;font-size:0.75rem;color:var(--text-muted);margin-top:1.5rem;">
+      Authorized personnel only.<br>
+      Contact your administrator for access.
+    </p>
+
+    <p style="text-align:center;font-size:0.7rem;color:var(--gold-dark);margin-top:0.5rem;">
+      <i class="bi bi-envelope"></i> info.pandoraawards@gmail.com &nbsp;|&nbsp;
+      <i class="bi bi-telephone"></i> +234 814 639 6555
+    </p>
+  </div>
+</div>
+<script src="{% static 'js/pandora.js' %}"></script>
+</body>
+</html>

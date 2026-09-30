@@ -1,0 +1,66 @@
+{% extends 'tickets/base.html' %}
+{% block title %}Guests — Pandora E-Ticket{% endblock %}
+{% block page_title %}Guests{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h3><i class="bi bi-people"></i> All Guests</h3>
+    <a href="{% url 'guest_create' %}" class="btn-gold">
+      <i class="bi bi-plus-lg"></i> Register Guest
+    </a>
+  </div>
+
+  <form method="get" class="search-bar">
+    <input type="search" name="q" value="{{ q }}" placeholder="Search name, phone or email…">
+    <button type="submit" class="btn-gold"><i class="bi bi-search"></i></button>
+  </form>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Photo</th>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Source</th>
+          <th>Tickets</th>
+          <th>Registered</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for guest in guests %}
+        <tr>
+          <td>
+            {% if guest.photo %}
+            <img src="{{ guest.photo.url }}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1.5px solid var(--gold-dark);">
+            {% else %}
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:var(--dark3);color:var(--gold-dark);font-size:1.1rem;"><i class="bi bi-person"></i></span>
+            {% endif %}
+          </td>
+          <td><strong>{{ guest.full_name }}</strong></td>
+          <td>{{ guest.phone_number }}</td>
+          <td>
+            {% if guest.registration_source == 'WALK_IN' %}
+            <span class="badge badge-walkin">Walk-In</span>
+            {% else %}
+            <span class="badge badge-preregistered">Pre-Reg</span>
+            {% endif %}
+          </td>
+          <td>{{ guest.tickets.count }}</td>
+          <td style="font-size:0.8rem;color:var(--text-muted);">{{ guest.created_at|date:"d M Y" }}</td>
+          <td><a href="{% url 'guest_detail' guest.pk %}" class="btn-outline-gold" style="padding:0.3rem 0.75rem;font-size:0.78rem;">View</a></td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);">
+            {% if q %}No guests match "{{ q }}".{% else %}No guests registered yet.{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

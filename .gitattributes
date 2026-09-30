@@ -1,0 +1,12 @@
+# Ensure Unix line endings on Render (Linux)
+* text=auto eol=lf
+build.sh text eol=lf
+Procfile text eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.txt text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf

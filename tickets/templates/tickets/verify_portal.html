@@ -1,0 +1,78 @@
+{% extends 'tickets/base.html' %}
+{% block title %}Verify Ticket — Pandora E-Ticket{% endblock %}
+{% block page_title %}Verify Ticket{% endblock %}
+
+{% block extra_head %}
+<!-- html5-qrcode for QR scanning -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="verify-search-card">
+
+  <div class="card">
+    <div style="text-align:center;margin-bottom:1.25rem;">
+      <h2 style="margin:0;font-size:1.4rem;">🏆 Pandora Awards</h2>
+      <p style="color:var(--text-muted);font-size:0.85rem;margin:4px 0 0;">
+        8th Edition · Verification Portal
+      </p>
+    </div>
+
+    <!-- Option 1: Ticket number or phone -->
+    <form method="post" action="{% url 'verify_search' %}">
+      {% csrf_token %}
+      <label style="text-align:center;display:block;color:var(--gold-light);margin-bottom:0.5rem;">
+        Enter Ticket Number or Phone Number
+      </label>
+      <div class="verify-input-group">
+        <input type="text" name="query" id="verify-query"
+               placeholder="e.g. PDR26-X7K92M or 08012345678"
+               autocomplete="off" autocorrect="off" autocapitalize="characters"
+               style="font-size:1.05rem;padding:0.85rem 1rem;letter-spacing:1px;">
+        <button type="submit" class="btn-gold" style="padding:0.85rem 1.4rem;">
+          <i class="bi bi-search"></i> Verify
+        </button>
+      </div>
+    </form>
+
+    <div class="divider-or">OR</div>
+
+    <!-- Option 2: QR Scanner -->
+    <div style="text-align:center;">
+      <label style="color:var(--gold-light);display:block;margin-bottom:0.5rem;">
+        Scan QR Code
+      </label>
+      <button id="btn-scan-qr" class="btn-gold" style="width:100%;justify-content:center;padding:0.85rem;"
+              data-verify-base="{% url 'verify_by_qr' qr_token='PLACEHOLDER' %}">
+        <i class="bi bi-qr-code-scan"></i> &nbsp; Start QR Scanner
+      </button>
+
+      <div id="qr-scanner-container" style="display:none;margin-top:1rem;">
+        <div id="qr-reader" style="width:100%;border-radius:10px;overflow:hidden;"></div>
+        <p style="font-size:0.78rem;color:var(--text-muted);margin-top:0.5rem;">
+          Point camera at the QR code on the guest's ticket.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <p style="text-align:center;font-size:0.75rem;color:var(--text-muted);margin-top:1rem;">
+    Staff: {{ user.get_full_name|default:user.username }} &nbsp;·&nbsp;
+    Role: {{ user.profile.get_role_display }}
+  </p>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // Override the QR scanner success callback to build the correct URL
+  const btn = document.getElementById('btn-scan-qr');
+  if (!btn) return;
+  // Build base path: /verify/qr/
+  btn.dataset.verifyBase = '/verify/qr/';
+});
+</script>
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends 'tickets/base.html' %}
+{% block title %}{{ ticket.ticket_number }} — Pandora E-Ticket{% endblock %}
+{% block page_title %}Ticket Detail{% endblock %}
+
+{% block content %}
+{% load static %}
+<div style="display:grid;grid-template-columns:1fr 340px;gap:1.25rem;align-items:start;">
+
+  <!-- Left: ticket info -->
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="bi bi-ticket-perforated"></i> <span class="ticket-number-display">{{ ticket.ticket_number }}</span></h3>
+        {% if ticket.status == 'ACTIVE' %}<span class="badge badge-active">Active</span>
+        {% elif ticket.status == 'USED' %}<span class="badge badge-used">Used</span>
+        {% else %}<span class="badge badge-cancelled">Cancelled</span>{% endif %}
+      </div>
+
+      <!-- Guest photo + name -->
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid var(--dark3);">
+        {% if ticket.guest.photo %}
+        <img src="{{ ticket.guest.photo.url }}" alt=""
+             style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);">
+        {% else %}
+        <div style="width:72px;height:72px;border-radius:50%;background:var(--dark3);border:2px solid var(--gold-dark);display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--gold-dark);">
+          <i class="bi bi-person"></i>
+        </div>
+        {% endif %}
+        <div>
+          <h4 style="margin:0;">{{ ticket.guest.full_name }}</h4>
+          <p style="color:var(--text-muted);margin:2px 0;font-size:0.85rem;">{{ ticket.guest.phone_number }}</p>
+          {% if ticket.guest.registration_source == 'WALK_IN' %}
+          <span class="badge badge-walkin">Walk-In</span>
+          {% else %}
+          <span class="badge badge-preregistered">Pre-Registered</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Detail rows -->
+      {% include 'tickets/_ticket_info_rows.html' with ticket=ticket %}
+
+      <!-- Actions -->
+      <div style="display:flex;gap:0.75rem;margin-top:1.25rem;flex-wrap:wrap;">
+        <a href="{% url 'ticket_download' ticket.pk %}" class="btn-gold">
+          <i class="bi bi-download"></i> Download PDF
+        </a>
+        <a href="{% url 'ticket_view_pdf' ticket.pk %}" class="btn-outline-gold" target="_blank">
+          <i class="bi bi-eye"></i> Preview Ticket
+        </a>
+        {% if ticket.is_active and user.profile.can_cancel_ticket %}
+        <a href="{% url 'ticket_cancel' ticket.pk %}"
+           class="btn-danger-pandora"
+           data-confirm="Cancel ticket {{ ticket.ticket_number }}? This cannot be undone.">
+          <i class="bi bi-x-circle"></i> Cancel Ticket
+        </a>
+        {% endif %}
+        {% if ticket.is_active %}
+        <a href="{% url 'verify_result_direct' ticket.pk %}" class="btn-gold">
+          <i class="bi bi-qr-code-scan"></i> Verify / Check-In
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Verification log -->
+    {% if logs %}
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="bi bi-journal-check"></i> Verification History</h3>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Time</th><th>Action</th><th>Result</th><th>Staff</th><th>IP</th></tr>
+          </thead>
+          <tbody>
+            {% for log in logs %}
+            <tr>
+              <td style="font-size:0.8rem;color:var(--text-muted);">{{ log.timestamp|date:"d M Y, g:i A" }}</td>
+              <td>{{ log.action }}</td>
+              <td>
+                {% if log.result == 'VALID' %}<span class="text-green">{{ log.result }}</span>
+                {% elif log.result == 'ALREADY_USED' %}<span class="text-orange">{{ log.result }}</span>
+                {% else %}<span class="text-red">{{ log.result }}</span>{% endif %}
+              </td>
+              <td>{{ log.staff_user.get_full_name|default:log.staff_user.username|default:"—" }}</td>
+              <td style="font-size:0.78rem;color:var(--text-muted);">{{ log.ip_address|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Right: QR code -->
+  <div>
+    <div class="card" style="text-align:center;">
+      <h4 style="margin-bottom:1rem;">QR Code</h4>
+      {% with qr_path="qrcodes/"|add:ticket.ticket_number|add:".png" %}
+      <div class="qr-preview" style="margin:0 auto;display:inline-block;">
+        <img src="{{ MEDIA_URL }}{{ qr_path }}" alt="QR Code" style="max-width:180px;display:block;"
+             onerror="this.style.display='none';document.getElementById('qr-missing').style.display='block';">
+        <div id="qr-missing" style="display:none;padding:2rem;color:var(--text-muted);font-size:0.8rem;">
+          QR not generated yet.
+        </div>
+      </div>
+      {% endwith %}
+      <p style="font-size:0.72rem;color:var(--text-muted);margin-top:0.75rem;">
+        For verification use only. Contains no personal data.
+      </p>
+      <p style="font-size:0.7rem;color:var(--gold-dark);">
+        Scan URL: /verify/qr/[token]
+      </p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

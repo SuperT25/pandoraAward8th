@@ -1,0 +1,45 @@
+{% extends 'tickets/base.html' %}
+{% block title %}Staff Accounts — Pandora E-Ticket{% endblock %}
+{% block page_title %}Staff Accounts{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h3><i class="bi bi-person-gear"></i> Staff Accounts</h3>
+    <a href="{% url 'staff_create' %}" class="btn-gold"><i class="bi bi-person-plus"></i> Create Account</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Username</th><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Created</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for profile in profiles %}
+        <tr>
+          <td><strong>{{ profile.user.username }}</strong></td>
+          <td>{{ profile.user.get_full_name|default:"—" }}</td>
+          <td style="font-size:0.85rem;color:var(--text-muted);">{{ profile.user.email|default:"—" }}</td>
+          <td>
+            <span class="badge" style="background:rgba(201,150,12,0.15);color:var(--gold);">
+              {{ profile.get_role_display }}
+            </span>
+          </td>
+          <td>
+            {% if profile.user.is_active %}<span class="badge badge-active">Active</span>
+            {% else %}<span class="badge badge-cancelled">Disabled</span>{% endif %}
+          </td>
+          <td style="font-size:0.8rem;color:var(--text-muted);">{{ profile.created_at|date:"d M Y" }}</td>
+          <td>
+            <a href="{% url 'staff_edit' profile.pk %}" class="btn-outline-gold" style="padding:0.3rem 0.75rem;font-size:0.78rem;">
+              <i class="bi bi-pencil"></i> Edit
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);">No staff accounts yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

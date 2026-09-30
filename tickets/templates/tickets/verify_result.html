@@ -1,0 +1,142 @@
+{% extends 'tickets/base.html' %}
+{% block title %}Verification Result — Pandora{% endblock %}
+{% block page_title %}Ticket Verification{% endblock %}
+
+{% block content %}
+<div class="verify-search-card">
+
+  {% if result == 'VALID' and ticket %}
+  <!-- ══ VALID ══════════════════════════════════════════════════════ -->
+  <div class="verify-panel valid">
+    <span class="verify-status-icon">✅</span>
+    <div class="verify-status-label">VALID TICKET</div>
+    <p style="color:var(--green-ok);font-size:0.85rem;margin:0 0 0.75rem;">
+      This ticket is active and ready for admission.
+    </p>
+
+    <!-- Guest photo — prominent for identity check -->
+    {% if ticket.guest.photo %}
+    <img src="{{ ticket.guest.photo.url }}" alt="{{ ticket.guest.full_name }}" class="guest-photo-verify">
+    {% else %}
+    <div class="guest-photo-placeholder"><i class="bi bi-person"></i></div>
+    {% endif %}
+
+    <h3 style="margin:0.5rem 0 0.25rem;color:white;">{{ ticket.guest.full_name }}</h3>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin:0 0 1rem;">{{ ticket.guest.phone_number }}</p>
+
+    <!-- Info table -->
+    <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:0.75rem 1rem;margin-bottom:1rem;">
+      {% include 'tickets/_ticket_info_rows.html' with ticket=ticket %}
+    </div>
+
+    <!-- CHECK IN button -->
+    {% if ticket.is_active %}
+    <form method="post" action="{% url 'checkin' ticket.pk %}">
+      {% csrf_token %}
+      <button type="submit" class="btn-checkin">
+        ✅ &nbsp; CHECK IN GUEST
+      </button>
+    </form>
+    {% endif %}
+  </div>
+
+  {% elif result == 'ALREADY_USED' and ticket %}
+  <!-- ══ ALREADY USED ══════════════════════════════════════════════ -->
+  <div class="verify-panel used">
+    <span class="verify-status-icon">🚫</span>
+    <div class="verify-status-label">TICKET ALREADY USED</div>
+    <p style="color:var(--orange-warn);font-size:0.85rem;margin:0 0 0.75rem;">
+      This ticket has already been used for admission.
+    </p>
+
+    {% if ticket.guest.photo %}
+    <img src="{{ ticket.guest.photo.url }}" alt="" class="guest-photo-verify" style="border-color:var(--orange-warn);opacity:0.7;">
+    {% else %}
+    <div class="guest-photo-placeholder" style="border-color:var(--orange-warn);"><i class="bi bi-person"></i></div>
+    {% endif %}
+
+    <h3 style="margin:0.5rem 0 0.25rem;color:white;">{{ ticket.guest.full_name }}</h3>
+
+    <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:0.75rem 1rem;margin:0.75rem 0;">
+      <div class="verify-info-row">
+        <span class="label">Ticket No.</span>
+        <span class="value ticket-number-display">{{ ticket.ticket_number }}</span>
+      </div>
+      <div class="verify-info-row">
+        <span class="label">Ticket Type</span>
+        <span class="value">{{ ticket.ticket_type.name }}</span>
+      </div>
+      <div class="verify-info-row">
+        <span class="label">Checked In At</span>
+        <span class="value text-orange">{{ ticket.checked_in_at|date:"d M Y, g:i A" }}</span>
+      </div>
+      <div class="verify-info-row">
+        <span class="label">Checked In By</span>
+        <span class="value">{{ ticket.checked_in_by.get_full_name|default:ticket.checked_in_by.username|default:"—" }}</span>
+      </div>
+    </div>
+
+    <div class="alert alert-warning" style="margin-top:0.75rem;border-radius:8px;">
+      <i class="bi bi-exclamation-triangle"></i>
+      Do NOT allow entry. Contact your supervisor if needed.
+    </div>
+  </div>
+
+  {% elif result == 'CANCELLED' and ticket %}
+  <!-- ══ CANCELLED ══════════════════════════════════════════════════ -->
+  <div class="verify-panel cancelled">
+    <span class="verify-status-icon">❌</span>
+    <div class="verify-status-label">CANCELLED TICKET</div>
+    <p style="color:#ff4444;font-size:0.85rem;margin:0 0 0.75rem;">
+      This ticket has been cancelled and is no longer valid.
+    </p>
+
+    <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:0.75rem 1rem;margin:0.75rem 0;">
+      <div class="verify-info-row">
+        <span class="label">Ticket No.</span>
+        <span class="value ticket-number-display">{{ ticket.ticket_number }}</span>
+      </div>
+      <div class="verify-info-row">
+        <span class="label">Guest</span>
+        <span class="value">{{ ticket.guest.full_name }}</span>
+      </div>
+      <div class="verify-info-row">
+        <span class="label">Ticket Type</span>
+        <span class="value">{{ ticket.ticket_type.name }}</span>
+      </div>
+    </div>
+
+    <div class="alert alert-error" style="margin-top:0.75rem;border-radius:8px;">
+      <i class="bi bi-x-circle"></i>
+      Do NOT allow entry. This ticket is invalid.
+    </div>
+  </div>
+
+  {% else %}
+  <!-- ══ INVALID / NOT FOUND ════════════════════════════════════════ -->
+  <div class="verify-panel invalid">
+    <span class="verify-status-icon">❓</span>
+    <div class="verify-status-label">INVALID TICKET</div>
+    <p style="color:var(--red-warn);font-size:0.85rem;margin:0 0 0.75rem;">
+      Ticket not found in the system.
+    </p>
+    {% if query %}
+    <p style="font-size:0.8rem;color:var(--text-muted);">
+      Query: <strong>{{ query }}</strong>
+    </p>
+    {% endif %}
+    <div class="alert alert-error" style="margin-top:0.75rem;border-radius:8px;">
+      <i class="bi bi-exclamation-circle"></i>
+      Do NOT allow entry. Contact your supervisor.
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Back to verify -->
+  <a href="{% url 'verify_portal' %}" class="btn-outline-gold w-100 text-center"
+     style="margin-top:1rem;display:block;padding:0.85rem;justify-content:center;">
+    <i class="bi bi-arrow-left"></i> &nbsp; Verify Another Ticket
+  </a>
+
+</div>
+{% endblock %}

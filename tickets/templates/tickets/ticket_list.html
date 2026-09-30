@@ -1,0 +1,74 @@
+{% extends 'tickets/base.html' %}
+{% block title %}Tickets — Pandora E-Ticket{% endblock %}
+{% block page_title %}All Tickets{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h3><i class="bi bi-ticket-perforated"></i> All Tickets</h3>
+    <a href="{% url 'guest_create' %}" class="btn-gold">
+      <i class="bi bi-plus-lg"></i> New Ticket
+    </a>
+  </div>
+
+  <form method="get" style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem;">
+    <input type="search" name="q" value="{{ q }}" placeholder="Ticket number, guest name or phone…" style="flex:1;min-width:200px;">
+    <select name="status" style="width:auto;">
+      <option value="">All Statuses</option>
+      <option value="ACTIVE"    {% if status_filter == 'ACTIVE'    %}selected{% endif %}>Active</option>
+      <option value="USED"      {% if status_filter == 'USED'      %}selected{% endif %}>Used</option>
+      <option value="CANCELLED" {% if status_filter == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+    </select>
+    <button type="submit" class="btn-gold"><i class="bi bi-search"></i> Filter</button>
+  </form>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Ticket No.</th>
+          <th>Guest</th>
+          <th>Phone</th>
+          <th>Type</th>
+          <th>Source</th>
+          <th>Status</th>
+          <th>Issued</th>
+          <th>Check-In</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tickets %}
+        <tr>
+          <td><span class="ticket-number-display">{{ t.ticket_number }}</span></td>
+          <td>{{ t.guest.full_name }}</td>
+          <td>{{ t.guest.phone_number }}</td>
+          <td>{{ t.ticket_type.name }}</td>
+          <td>
+            {% if t.guest.registration_source == 'WALK_IN' %}
+            <span class="badge badge-walkin">Walk-In</span>
+            {% else %}
+            <span class="badge badge-preregistered">Pre-Reg</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if t.status == 'ACTIVE' %}<span class="badge badge-active">Active</span>
+            {% elif t.status == 'USED' %}<span class="badge badge-used">Used</span>
+            {% else %}<span class="badge badge-cancelled">Cancelled</span>{% endif %}
+          </td>
+          <td style="font-size:0.8rem;color:var(--text-muted);">{{ t.issued_at|date:"d M Y" }}</td>
+          <td style="font-size:0.8rem;color:var(--text-muted);">
+            {% if t.checked_in_at %}{{ t.checked_in_at|date:"d M Y, g:i A" }}{% else %}—{% endif %}
+          </td>
+          <td><a href="{% url 'ticket_detail' t.pk %}" class="btn-outline-gold" style="padding:0.3rem 0.75rem;font-size:0.78rem;">View</a></td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="9" style="text-align:center;padding:2rem;color:var(--text-muted);">No tickets found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

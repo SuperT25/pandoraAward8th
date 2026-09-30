@@ -234,37 +234,37 @@ def generate_ticket_pdf(ticket) -> bytes:
     c.rect(mid_x, 0, MID_W, 4 * mm, fill=1, stroke=0)
 
     # ── Header ───────────────────────────────────────────────────────────────
-    header_top = PAGE_H - 4 * mm - 5 * mm
+    header_top = PAGE_H - 4 * mm - 4 * mm
 
     c.setFillColor(DARK_TEXT)
-    c.setFont('Helvetica-Bold', 6)
+    c.setFont('Helvetica-Bold', 5.5)
     c.drawCentredString(mid_x + MID_W / 2, header_top, 'PANDORA AWARDS  ·  8TH EDITION')
 
-    c.setFont('Helvetica-Bold', 10.5)
-    c.drawCentredString(mid_x + MID_W / 2, header_top - 7 * mm, 'PANDORA AWARD 8TH EDITION E-TICKET')
+    c.setFont('Helvetica-Bold', 10)
+    c.drawCentredString(mid_x + MID_W / 2, header_top - 6 * mm, 'PANDORA AWARD 8TH EDITION E-TICKET')
 
     c.setStrokeColor(GOLD)
     c.setLineWidth(0.8)
-    c.line(mid_x + 6 * mm, header_top - 9 * mm, mid_x + MID_W - 6 * mm, header_top - 9 * mm)
+    c.line(mid_x + 6 * mm, header_top - 8 * mm, mid_x + MID_W - 6 * mm, header_top - 8 * mm)
 
     c.setFillColor(GREY_TEXT)
-    c.setFont('Helvetica', 6.5)
-    c.drawCentredString(mid_x + MID_W / 2, header_top - 12.5 * mm, 'YOUR TICKET IS VALID')
+    c.setFont('Helvetica', 6)
+    c.drawCentredString(mid_x + MID_W / 2, header_top - 11 * mm, 'YOUR TICKET IS VALID')
 
     # ── Two-column guest details ──────────────────────────────────────────────
     col1_x = mid_x + 5 * mm
-    col2_x = mid_x + MID_W / 2 + 3 * mm
-    row1_y = header_top - 20 * mm
-    row2_y = row1_y - 9 * mm
-    row3_y = row2_y - 9 * mm
+    col2_x = mid_x + MID_W / 2 + 2 * mm
+    row1_y = header_top - 18 * mm
+    row2_y = row1_y - 11 * mm
+    row3_y = row2_y - 11 * mm
 
-    def draw_field(x, y, label, value, max_chars=28):
+    def draw_field(x, y, label, value, max_chars=24):
         c.setFillColor(GOLD)
-        c.setFont('Helvetica-Bold', 5.5)
+        c.setFont('Helvetica-Bold', 5)
         c.drawString(x + 5 * mm, y, label)
         c.setFillColor(DARK_TEXT)
-        c.setFont('Helvetica', 7)
-        c.drawString(x + 5 * mm, y - 4 * mm, str(value)[:max_chars])
+        c.setFont('Helvetica', 6.5)
+        c.drawString(x + 5 * mm, y - 3.5 * mm, str(value)[:max_chars])
 
     def draw_icon(x, y, color=None):
         ic = color or GOLD
@@ -288,11 +288,11 @@ def generate_ticket_pdf(ticket) -> bytes:
                ticket.event.event_date.strftime('Sunday, %d %B %Y'))
 
     draw_icon(col2_x, row2_y, colors.HexColor('#8b0000'))
-    draw_field(col2_x, row2_y, 'VENUE', 'A Class Event Center (Sapphire Hall)', max_chars=32)
+    draw_field(col2_x, row2_y, 'VENUE', 'A Class Event Center (Sapphire Hall)', max_chars=28)
     c.setFillColor(GREY_TEXT)
-    c.setFont('Helvetica', 5.5)
-    c.drawString(col2_x + 5 * mm, row2_y - 8.5 * mm, 'Along Kashmiri Ibrahim Way, Maitama')
-    c.drawString(col2_x + 5 * mm, row2_y - 11.5 * mm, 'Abuja FCT Nigeria')
+    c.setFont('Helvetica', 5)
+    c.drawString(col2_x + 5 * mm, row2_y - 7 * mm, 'Along Kashmiri Ibrahim Way, Maitama')
+    c.drawString(col2_x + 5 * mm, row2_y - 9.5 * mm, 'Abuja FCT Nigeria')
 
     draw_icon(col2_x, row3_y, colors.HexColor('#1a3a00'))
     draw_field(col2_x, row3_y, 'TICKET NO.', ticket.ticket_number)

@@ -25,19 +25,25 @@ def get_client_ip(request):
 # QR Code generation
 # ---------------------------------------------------------------------------
 
+SITE_URL = 'https://pandoraaward8th.onrender.com'
+
+
 def generate_qr_image(qr_token: str, size: int = 10) -> bytes:
     """
-    Generate a QR code PNG for the given token.
-    The QR contains ONLY the token — no personal data.
+    Generate a QR code PNG.
+    The QR encodes the full live verify URL so scanning opens verification directly.
+    No personal data is stored in the QR.
     Returns PNG bytes.
     """
+    verify_url = f"{SITE_URL}/verify/qr/{qr_token}/"
+
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_H,
         box_size=size,
         border=2,
     )
-    qr.add_data(qr_token)
+    qr.add_data(verify_url)
     qr.make(fit=True)
     img = qr.make_image(fill_color="#1a0a00", back_color="white")
     buffer = io.BytesIO()
@@ -48,6 +54,7 @@ def generate_qr_image(qr_token: str, size: int = 10) -> bytes:
 def save_qr_to_file(ticket) -> str:
     """
     Generate and save QR PNG to media/qrcodes/<ticket_number>.png
+    QR now encodes the full live verify URL.
     Returns the relative media path.
     """
     png_bytes = generate_qr_image(ticket.qr_token)

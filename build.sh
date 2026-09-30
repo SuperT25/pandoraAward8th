@@ -15,4 +15,7 @@ python manage.py migrate --no-input
 echo "==> Seeding initial event data (safe — skips if already exists)..."
 python manage.py seed_data
 
+echo "==> Regenerating QR codes with live verify URL..."
+python manage.py regenerate_qr
+
 echo "==> Build complete."

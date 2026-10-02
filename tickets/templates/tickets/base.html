@@ -2,24 +2,219 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>{% block title %}Pandora Awards — E-Ticket System{% endblock %}</title>
   {% load static %}
   <link rel="stylesheet" href="{% static 'css/pandora.css' %}">
-  <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    /* ── Mobile bottom nav bar ── */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(10, 5, 0, 0.97);
+      border-top: 1px solid var(--gold-dark);
+      z-index: 999;
+      padding: 0;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .mobile-nav-inner {
+      display: flex;
+      align-items: stretch;
+      justify-content: space-around;
+      height: 58px;
+    }
+
+    .mobile-nav a {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.6rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      gap: 2px;
+      padding: 6px 2px;
+      border: none;
+      background: none;
+      -webkit-tap-highlight-color: rgba(201,150,12,0.2);
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+
+    .mobile-nav a i {
+      font-size: 1.35rem;
+      line-height: 1;
+    }
+
+    .mobile-nav a.active,
+    .mobile-nav a:active {
+      color: var(--gold);
+    }
+
+    .mobile-nav a.verify-btn {
+      color: var(--gold);
+      background: rgba(201,150,12,0.08);
+      border-radius: 8px;
+      margin: 6px 4px;
+    }
+
+    /* ── Mobile menu overlay ── */
+    .mobile-menu-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 1000;
+      overflow-y: auto;
+    }
+
+    .mobile-menu-overlay.open { display: block; }
+
+    .mobile-menu-panel {
+      background: var(--dark);
+      min-height: 100vh;
+      padding: 1rem;
+    }
+
+    .mobile-menu-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--dark3);
+      margin-bottom: 1rem;
+    }
+
+    .mobile-menu-panel a {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.85rem 1rem;
+      color: var(--text-light);
+      text-decoration: none;
+      font-size: 1rem;
+      border-radius: 10px;
+      margin-bottom: 0.25rem;
+      -webkit-tap-highlight-color: rgba(201,150,12,0.15);
+    }
+
+    .mobile-menu-panel a:active,
+    .mobile-menu-panel a.active {
+      background: rgba(201,150,12,0.1);
+      color: var(--gold);
+    }
+
+    .mobile-menu-panel a i {
+      font-size: 1.2rem;
+      width: 24px;
+      text-align: center;
+      color: var(--gold);
+    }
+
+    .mobile-section-label {
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0.75rem 1rem 0.25rem;
+    }
+
+    /* ── On mobile: hide sidebar, show bottom nav, add bottom padding ── */
+    @media (max-width: 768px) {
+      .sidebar { display: none !important; }
+      .main-content { margin-left: 0 !important; }
+      .mobile-nav { display: block; }
+      .content-body { padding-bottom: 72px !important; }
+      .hamburger { display: block !important; }
+    }
+
+    @media (min-width: 769px) {
+      .mobile-nav { display: none !important; }
+      .mobile-menu-overlay { display: none !important; }
+    }
+  </style>
   {% block extra_head %}{% endblock %}
 </head>
 <body>
 
+<!-- ── Desktop sidebar overlay ── -->
 <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<!-- ── Mobile full-screen menu ── -->
+<div class="mobile-menu-overlay" id="mobile-menu-overlay">
+  <div class="mobile-menu-panel">
+    <div class="mobile-menu-header">
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        {% load static %}
+        <img src="{% static 'img/pandora-logo.jpeg' %}" alt=""
+             style="width:40px;height:40px;border-radius:50%;border:2px solid var(--gold);object-fit:cover;">
+        <div>
+          <div style="color:var(--gold);font-weight:700;font-size:0.9rem;">PANDORA</div>
+          <div style="color:var(--text-muted);font-size:0.7rem;">E-Ticket System</div>
+        </div>
+      </div>
+      <button onclick="closeMobileMenu()"
+              style="background:none;border:none;color:var(--gold);font-size:1.8rem;cursor:pointer;padding:0.25rem;">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+
+    <div class="mobile-section-label">Main</div>
+    <a href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+    <a href="{% url 'verify_portal' %}" style="background:rgba(201,150,12,0.08);">
+      <i class="bi bi-qr-code-scan"></i> Verify Ticket
+    </a>
+
+    {% if user.profile.can_register_walkin %}
+    <a href="{% url 'walkin_register' %}"><i class="bi bi-person-plus"></i> Walk-In Registration</a>
+    {% endif %}
+
+    {% if user.profile.is_ticket_admin %}
+    <div class="mobile-section-label">Tickets</div>
+    <a href="{% url 'guest_create' %}"><i class="bi bi-person-badge"></i> Register Guest</a>
+    <a href="{% url 'guest_list' %}"><i class="bi bi-people"></i> All Guests</a>
+    <a href="{% url 'ticket_list' %}"><i class="bi bi-ticket-perforated"></i> All Tickets</a>
+    {% endif %}
+
+    {% if user.profile.is_super_admin %}
+    <div class="mobile-section-label">Admin</div>
+    <a href="{% url 'event_list' %}"><i class="bi bi-calendar-event"></i> Events</a>
+    <a href="{% url 'tickettype_list' %}"><i class="bi bi-tags"></i> Ticket Types</a>
+    <a href="{% url 'staff_list' %}"><i class="bi bi-person-gear"></i> Staff Accounts</a>
+    {% endif %}
+
+    {% if user.profile.is_ticket_admin %}
+    <div class="mobile-section-label">Reports</div>
+    <a href="{% url 'reports' %}"><i class="bi bi-bar-chart"></i> Reports & Export</a>
+    <a href="{% url 'verification_log' %}"><i class="bi bi-journal-check"></i> Verification Log</a>
+    {% endif %}
+
+    <div style="border-top:1px solid var(--dark3);margin-top:1rem;padding-top:1rem;">
+      <div style="color:var(--gold-light);font-weight:600;padding:0 1rem 0.25rem;">
+        {{ user.get_full_name|default:user.username }}
+      </div>
+      <div style="color:var(--text-muted);font-size:0.75rem;padding:0 1rem 0.75rem;">
+        {{ user.profile.get_role_display }}
+      </div>
+      <a href="{% url 'logout' %}" style="color:#ff6b6b;">
+        <i class="bi bi-box-arrow-right" style="color:#ff6b6b;"></i> Sign Out
+      </a>
+    </div>
+  </div>
+</div>
 
 <div class="layout-wrapper">
 
-  <!-- ── SIDEBAR ── -->
+  <!-- ── Desktop SIDEBAR ── -->
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-      {% load static %}
       <div style="display:flex;align-items:center;gap:0.75rem;">
         <img src="{% static 'img/pandora-logo.jpeg' %}" alt="Pandora Awards"
              style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);flex-shrink:0;">
@@ -31,7 +226,6 @@
     </div>
 
     <div class="sidebar-nav">
-
       <span class="nav-section-label">Main</span>
       <a href="{% url 'dashboard' %}"><span class="icon"><i class="bi bi-speedometer2"></i></span> Dashboard</a>
       <a href="{% url 'verify_portal' %}"><span class="icon"><i class="bi bi-qr-code-scan"></i></span> Verify Ticket</a>
@@ -59,7 +253,6 @@
       <a href="{% url 'reports' %}"><span class="icon"><i class="bi bi-bar-chart"></i></span> Reports & Export</a>
       <a href="{% url 'verification_log' %}"><span class="icon"><i class="bi bi-journal-check"></i></span> Verification Log</a>
       {% endif %}
-
     </div>
 
     <div class="sidebar-footer">
@@ -76,7 +269,8 @@
   <div class="main-content">
 
     <div class="top-bar">
-      <button class="hamburger" id="hamburger" aria-label="Menu">
+      <button class="hamburger" id="hamburger" aria-label="Menu"
+              onclick="openMobileMenu()" style="display:none;">
         <i class="bi bi-list"></i>
       </button>
       <h1 class="page-title">{% block page_title %}Pandora E-Ticket{% endblock %}</h1>
@@ -86,8 +280,6 @@
     </div>
 
     <div class="content-body">
-
-      <!-- Django messages -->
       {% for message in messages %}
       <div class="alert alert-{{ message.tags }} alert-auto-dismiss">
         {% if message.tags == 'error' %}<i class="bi bi-exclamation-circle"></i>
@@ -98,12 +290,61 @@
       {% endfor %}
 
       {% block content %}{% endblock %}
-
     </div>
   </div>
 </div>
 
+<!-- ── Mobile Bottom Navigation Bar ── -->
+<nav class="mobile-nav">
+  <div class="mobile-nav-inner">
+    <a href="{% url 'dashboard' %}">
+      <i class="bi bi-speedometer2"></i>
+      <span>Dashboard</span>
+    </a>
+    <a href="{% url 'verify_portal' %}" class="verify-btn">
+      <i class="bi bi-qr-code-scan"></i>
+      <span>Verify</span>
+    </a>
+    {% if user.profile.can_register_walkin %}
+    <a href="{% url 'walkin_register' %}">
+      <i class="bi bi-person-plus"></i>
+      <span>Walk-In</span>
+    </a>
+    {% endif %}
+    {% if user.profile.is_ticket_admin %}
+    <a href="{% url 'guest_create' %}">
+      <i class="bi bi-person-badge"></i>
+      <span>Register</span>
+    </a>
+    {% endif %}
+    <a href="#" onclick="openMobileMenu(); return false;">
+      <i class="bi bi-list"></i>
+      <span>More</span>
+    </a>
+  </div>
+</nav>
+
 <script src="{% static 'js/pandora.js' %}"></script>
+<script>
+  function openMobileMenu() {
+    document.getElementById('mobile-menu-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMobileMenu() {
+    document.getElementById('mobile-menu-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  // Mark active bottom nav link
+  document.addEventListener('DOMContentLoaded', function () {
+    const path = window.location.pathname;
+    document.querySelectorAll('.mobile-nav a, .mobile-menu-panel a').forEach(function(a) {
+      const href = a.getAttribute('href');
+      if (href && href !== '#' && path.startsWith(href)) {
+        a.classList.add('active');
+      }
+    });
+  });
+</script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

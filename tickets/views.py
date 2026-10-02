@@ -117,17 +117,34 @@ def guest_create(request):
         guest_form = GuestRegistrationForm(request.POST, request.FILES)
         ticket_form = TicketCreateForm(request.POST)
         if guest_form.is_valid() and ticket_form.is_valid():
-            guest = guest_form.save(commit=False)
-            guest.registration_source = Guest.RegistrationSource.PRE_REGISTERED
-            guest.save()
+            try:
+                guest = guest_form.save(commit=False)
+                guest.registration_source = Guest.RegistrationSource.PRE_REGISTERED
+                guest.save()
 
-            ticket = ticket_form.save(commit=False)
-            ticket.guest = guest
-            ticket.save()
-            save_qr_to_file(ticket)
+                ticket = ticket_form.save(commit=False)
+                ticket.guest = guest
+                ticket.save()
 
-            messages.success(request, f"Ticket {ticket.ticket_number} created for {guest.full_name}.")
-            return redirect('ticket_detail', pk=ticket.pk)
+                try:
+                    save_qr_to_file(ticket)
+                except Exception as qr_err:
+                    # QR generation failure should not block ticket creation
+                    pass
+
+                messages.success(request, f"Ticket {ticket.ticket_number} created for {guest.full_name}.")
+                return redirect('ticket_detail', pk=ticket.pk)
+
+            except Exception as e:
+                messages.error(request, f"Error saving guest: {str(e)}")
+        else:
+            # Show all form errors clearly
+            for field, errors in guest_form.errors.items():
+                for error in errors:
+                    messages.error(request, f"Guest — {field}: {error}")
+            for field, errors in ticket_form.errors.items():
+                for error in errors:
+                    messages.error(request, f"Ticket — {field}: {error}")
     else:
         guest_form = GuestRegistrationForm()
         ticket_form = TicketCreateForm()
@@ -443,21 +460,31 @@ def walkin_register(request):
     if request.method == 'POST':
         form = WalkInRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
-            guest = Guest.objects.create(
-                full_name=form.cleaned_data['full_name'],
-                phone_number=form.cleaned_data['phone_number'],
-                email=form.cleaned_data.get('email', ''),
-                photo=form.cleaned_data.get('photo'),
-                registration_source=Guest.RegistrationSource.WALK_IN,
-            )
-            ticket = Ticket.objects.create(
-                guest=guest,
-                event=form.cleaned_data['event'],
-                ticket_type=form.cleaned_data['ticket_type'],
-            )
-            save_qr_to_file(ticket)
-            messages.success(request, f"Walk-in ticket {ticket.ticket_number} generated for {guest.full_name}.")
-            return redirect('verify_result_direct', pk=ticket.pk)
+            try:
+                guest = Guest.objects.create(
+                    full_name=form.cleaned_data['full_name'],
+                    phone_number=form.cleaned_data['phone_number'],
+                    email=form.cleaned_data.get('email', ''),
+                    photo=form.cleaned_data.get('photo'),
+                    registration_source=Guest.RegistrationSource.WALK_IN,
+                )
+                ticket = Ticket.objects.create(
+                    guest=guest,
+                    event=form.cleaned_data['event'],
+                    ticket_type=form.cleaned_data['ticket_type'],
+                )
+                try:
+                    save_qr_to_file(ticket)
+                except Exception:
+                    pass
+                messages.success(request, f"Walk-in ticket {ticket.ticket_number} generated for {guest.full_name}.")
+                return redirect('verify_result_direct', pk=ticket.pk)
+            except Exception as e:
+                messages.error(request, f"Error saving walk-in guest: {str(e)}")
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = WalkInRegistrationForm()
     return render(request, 'tickets/walkin_register.html', {'form': form})

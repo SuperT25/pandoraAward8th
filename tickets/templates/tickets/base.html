@@ -167,7 +167,9 @@
     </div>
 
     <div class="mobile-section-label">Main</div>
+    {% if user.profile.is_ticket_admin %}
     <a href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+    {% endif %}
     <a href="{% url 'verify_portal' %}" style="background:rgba(201,150,12,0.08);">
       <i class="bi bi-qr-code-scan"></i> Verify Ticket
     </a>
@@ -227,7 +229,9 @@
 
     <div class="sidebar-nav">
       <span class="nav-section-label">Main</span>
+      {% if user.profile.is_ticket_admin %}
       <a href="{% url 'dashboard' %}"><span class="icon"><i class="bi bi-speedometer2"></i></span> Dashboard</a>
+      {% endif %}
       <a href="{% url 'verify_portal' %}"><span class="icon"><i class="bi bi-qr-code-scan"></i></span> Verify Ticket</a>
 
       {% if user.profile.can_register_walkin %}
@@ -275,7 +279,11 @@
       </button>
       <h1 class="page-title">{% block page_title %}Pandora E-Ticket{% endblock %}</h1>
       <div style="font-size:0.75rem;color:var(--text-muted);">
-        Pandora Awards 8th Edition
+        {% if user.profile.is_ticket_admin %}
+        <a href="{% url 'dashboard' %}" style="color:var(--text-muted);text-decoration:none;">Dashboard</a>
+        {% else %}
+        Pandora Awards
+        {% endif %}
       </div>
     </div>
 
@@ -315,6 +323,10 @@
     <a href="{% url 'guest_create' %}">
       <i class="bi bi-person-badge"></i>
       <span>Register</span>
+    </a>
+    <a href="{% url 'guest_list' %}">
+      <i class="bi bi-people"></i>
+      <span>Guests</span>
     </a>
     {% endif %}
     <a href="#" onclick="openMobileMenu(); return false;">

@@ -187,6 +187,8 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024    # 10 MB
 # ---------------------------------------------------------------------------
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_AGE = 86400 * 30    # 30 days — staff stay logged in
+SESSION_SAVE_EVERY_REQUEST = True  # Refresh on every request
 CSRF_COOKIE_HTTPONLY = False
 
 # Enable full security when running in production (HTTPS on Render)

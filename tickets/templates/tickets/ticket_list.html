@@ -54,8 +54,7 @@
           <td>
             {% if t.status == 'ACTIVE' %}<span class="badge badge-active">Active</span>
             {% elif t.status == 'USED' %}<span class="badge badge-used">Used</span>
-            {% else %}<span class="badge badge-cancelled">Cancelled</span>{% endif %}
-          </td>
+            {% else %}<span class="badge badge-cancelled">Cancelled</span>{% endif %}          </td>
           <td style="font-size:0.8rem;color:var(--text-muted);">{{ t.issued_at|date:"d M Y" }}</td>
           <td style="font-size:0.8rem;color:var(--text-muted);">
             {% if t.checked_in_at %}{{ t.checked_in_at|date:"d M Y, g:i A" }}{% else %}—{% endif %}

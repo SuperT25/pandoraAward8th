@@ -112,7 +112,10 @@ class StaffCreateForm(forms.Form):
     last_name = forms.CharField(max_length=150)
     email = forms.EmailField(required=False)
     password = forms.CharField(widget=forms.PasswordInput())
-    role = forms.ChoiceField(choices=UserProfile.Role.choices)
+    role = forms.ChoiceField(
+        choices=[('ADMIN', 'Admin — Full Access'), ('STAFF', 'Staff — Verification Only')],
+        help_text='Admin: can register guests, manage tickets, view reports. Staff: can only verify and check-in guests.'
+    )
 
     def clean_username(self):
         username = self.cleaned_data['username']
@@ -125,7 +128,9 @@ class StaffEditForm(forms.Form):
     first_name = forms.CharField(max_length=150)
     last_name = forms.CharField(max_length=150)
     email = forms.EmailField(required=False)
-    role = forms.ChoiceField(choices=UserProfile.Role.choices)
+    role = forms.ChoiceField(
+        choices=[('ADMIN', 'Admin — Full Access'), ('STAFF', 'Staff — Verification Only')],
+    )
     is_active = forms.BooleanField(required=False)
 
 

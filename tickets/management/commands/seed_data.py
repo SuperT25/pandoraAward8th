@@ -62,10 +62,10 @@ class Command(BaseCommand):
             )
             # Signal will create profile, update role to SUPER_ADMIN
             try:
-                user.profile.role = UserProfile.Role.SUPER_ADMIN
+                user.profile.role = UserProfile.Role.ADMIN
                 user.profile.save()
             except Exception:
-                UserProfile.objects.create(user=user, role=UserProfile.Role.SUPER_ADMIN)
+                UserProfile.objects.create(user=user, role=UserProfile.Role.ADMIN)
             self.stdout.write(self.style.SUCCESS(
                 '  ✔ Super admin created — username: pandoraadmin  password: Pandora@2026!'
             ))

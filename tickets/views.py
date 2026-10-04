@@ -57,9 +57,8 @@ def logout_view(request):
 
 @login_required
 def dashboard(request):
-    # Verification staff go straight to verify portal — they have no admin access
-    role = request.user.profile.role
-    if role in ('VERIFICATION_STAFF', 'WALKIN_STAFF'):
+    # Staff go straight to verify portal — they have no admin access
+    if request.user.profile.role == 'STAFF':
         return redirect('verify_portal')
 
     active_event = Event.objects.filter(active=True).first()

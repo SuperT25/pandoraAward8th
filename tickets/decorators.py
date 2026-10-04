@@ -1,15 +1,17 @@
 """
 Pandora E-Ticket System — Role-based access decorators
+
+Two roles:
+  ADMIN  — full access (register guests, manage tickets, reports, events, staff)
+  STAFF  — verification only (search, verify, check-in)
 """
 
 from functools import wraps
 from django.shortcuts import redirect
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 
 
 def role_required(*roles):
-    """Restrict a view to users whose profile.role is in the given list."""
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped(request, *args, **kwargs):
@@ -22,23 +24,24 @@ def role_required(*roles):
                 return redirect('login')
             if user_role not in roles:
                 messages.error(request, "You do not have permission to access that page.")
-                return redirect('dashboard')
+                return redirect('verify_portal')
             return view_func(request, *args, **kwargs)
         return _wrapped
     return decorator
 
 
-def super_admin_required(view_func):
-    return role_required('SUPER_ADMIN')(view_func)
+def admin_required(view_func):
+    """Admin only — full access."""
+    return role_required('ADMIN')(view_func)
 
 
-def ticket_admin_required(view_func):
-    return role_required('SUPER_ADMIN', 'TICKET_ADMIN')(view_func)
+def any_staff_required(view_func):
+    """Both ADMIN and STAFF can access — used for verify/check-in views."""
+    return role_required('ADMIN', 'STAFF')(view_func)
 
 
-def walkin_staff_required(view_func):
-    return role_required('SUPER_ADMIN', 'TICKET_ADMIN', 'WALKIN_STAFF')(view_func)
-
-
-def verify_staff_required(view_func):
-    return role_required('SUPER_ADMIN', 'TICKET_ADMIN', 'VERIFICATION_STAFF', 'WALKIN_STAFF')(view_func)
+# Aliases for backward compatibility with existing view decorators
+super_admin_required  = admin_required
+ticket_admin_required = admin_required
+walkin_staff_required = any_staff_required
+verify_staff_required = any_staff_required

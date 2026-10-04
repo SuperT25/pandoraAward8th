@@ -200,17 +200,16 @@ class VerificationLog(models.Model):
 
 # ---------------------------------------------------------------------------
 # UserProfile — role management
+# Two roles: ADMIN (full access) | STAFF (verify only)
 # ---------------------------------------------------------------------------
 
 class UserProfile(models.Model):
     class Role(models.TextChoices):
-        SUPER_ADMIN = 'SUPER_ADMIN', 'Super Admin'
-        TICKET_ADMIN = 'TICKET_ADMIN', 'Ticket Admin'
-        VERIFICATION_STAFF = 'VERIFICATION_STAFF', 'Verification Staff'
-        WALKIN_STAFF = 'WALKIN_STAFF', 'Walk-In Registration Staff'
+        ADMIN = 'ADMIN', 'Admin'
+        STAFF = 'STAFF', 'Staff'
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    role = models.CharField(max_length=25, choices=Role.choices, default=Role.VERIFICATION_STAFF)
+    role = models.CharField(max_length=10, choices=Role.choices, default=Role.STAFF)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -218,28 +217,24 @@ class UserProfile(models.Model):
 
     @property
     def is_super_admin(self):
-        return self.role == self.Role.SUPER_ADMIN
+        return self.role == self.Role.ADMIN
 
     @property
     def is_ticket_admin(self):
-        return self.role in (self.Role.SUPER_ADMIN, self.Role.TICKET_ADMIN)
+        return self.role == self.Role.ADMIN
 
     @property
     def can_register_walkin(self):
-        return self.role in (
-            self.Role.SUPER_ADMIN,
-            self.Role.TICKET_ADMIN,
-            self.Role.WALKIN_STAFF,
-        )
+        return True  # Both roles can do walk-in on event day
 
     @property
     def can_cancel_ticket(self):
-        return self.role in (self.Role.SUPER_ADMIN, self.Role.TICKET_ADMIN)
+        return self.role == self.Role.ADMIN
 
     @property
     def can_manage_events(self):
-        return self.role == self.Role.SUPER_ADMIN
+        return self.role == self.Role.ADMIN
 
     @property
     def can_manage_users(self):
-        return self.role == self.Role.SUPER_ADMIN
+        return self.role == self.Role.ADMIN

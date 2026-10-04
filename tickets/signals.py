@@ -12,7 +12,7 @@ from .models import UserProfile
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         if not hasattr(instance, 'profile'):
-            role = UserProfile.Role.SUPER_ADMIN if instance.is_superuser else UserProfile.Role.VERIFICATION_STAFF
+            role = UserProfile.Role.ADMIN if instance.is_superuser else UserProfile.Role.STAFF
             UserProfile.objects.create(user=instance, role=role)
 
 

@@ -633,7 +633,11 @@ def staff_create(request):
                 last_name=form.cleaned_data['last_name'],
                 email=form.cleaned_data.get('email', ''),
             )
-            UserProfile.objects.create(user=user, role=form.cleaned_data['role'])
+            # Use update_or_create — signal may have already created the profile
+            UserProfile.objects.update_or_create(
+                user=user,
+                defaults={'role': form.cleaned_data['role']}
+            )
             messages.success(request, f"Staff account '{user.username}' created.")
             return redirect('staff_list')
     else:

@@ -13,6 +13,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Cloudinary URL (set in Render env vars)
 CLOUDINARY_URL = config('CLOUDINARY_URL', default=None)
+if CLOUDINARY_URL:
+    CLOUDINARY_URL = CLOUDINARY_URL.strip()  # Remove trailing newline
 
 # ---------------------------------------------------------------------------
 # SECURITY
@@ -90,6 +92,8 @@ WSGI_APPLICATION = 'pandora.wsgi.application'
 # SQLite locally, PostgreSQL on Render (set DATABASE_URL env var)
 # ---------------------------------------------------------------------------
 DATABASE_URL = config('DATABASE_URL', default=None)
+if DATABASE_URL:
+    DATABASE_URL = DATABASE_URL.strip()  # Remove any trailing newline/whitespace
 
 if DATABASE_URL:
     DATABASES = {

@@ -24,7 +24,7 @@ from .forms import (
     EventForm, TicketTypeForm, StaffCreateForm, StaffEditForm,
     VerifyTicketForm, GuestPhotoForm,
 )
-from .models import Event, Guest, Ticket, TicketType, UserProfile, VerificationLog
+from .models import Event, Guest, Ticket, TicketType, UserProfile, VerificationLog, ReEntryLog
 from .utils import get_client_ip, generate_ticket_pdf, save_qr_to_file
 
 
@@ -467,6 +467,42 @@ def checkin(request, pk):
 # ===========================================================================
 
 @login_required
+@checkin_required
+@require_POST
+def approve_reentry(request, pk):
+    """
+    Approve re-entry for a guest whose ticket is already USED.
+    Logs the re-entry with timestamp + staff name.
+    Ticket status stays USED — just records the authorised re-entry.
+    Only HALL_STAFF and ADMIN can approve.
+    """
+    ticket = get_object_or_404(
+        Ticket.objects.select_related('guest', 'event', 'ticket_type'),
+        pk=pk
+    )
+    ip = get_client_ip(request)
+
+    ReEntryLog.objects.create(
+        ticket=ticket,
+        approved_by=request.user,
+        ip_address=ip,
+        notes=f"Re-entry approved at Gate 2",
+    )
+
+    # Also log in verification log
+    VerificationLog.objects.create(
+        ticket=ticket,
+        staff_user=request.user,
+        action=VerificationLog.Action.CHECK_IN,
+        result=VerificationLog.Result.VALID,
+        ip_address=ip,
+        notes=f"RE-ENTRY approved by {request.user.get_full_name() or request.user.username}",
+    )
+
+    return render(request, 'tickets/reentry_success.html', {'ticket': ticket})
+
+
+@login_required
 @walkin_staff_required
 def walkin_register(request):
     if request.method == 'POST':
@@ -761,4 +797,8 @@ def reports_export_csv(request):
 @ticket_admin_required
 def verification_log(request):
     logs = VerificationLog.objects.select_related('ticket', 'staff_user').order_by('-timestamp')[:200]
-    return render(request, 'tickets/verification_log.html', {'logs': logs})
+    reentry_logs = ReEntryLog.objects.select_related('ticket', 'approved_by').order_by('-timestamp')[:50]
+    return render(request, 'tickets/verification_log.html', {
+        'logs': logs,
+        'reentry_logs': reentry_logs,
+    })

@@ -55,13 +55,18 @@
       This ticket has already been used for admission.
     </p>
 
+    <!-- Guest photo — show prominently for identity check -->
     {% if ticket.guest.photo %}
-    <img src="{{ ticket.guest.photo.url }}" alt="" class="guest-photo-verify" style="border-color:var(--orange-warn);opacity:0.7;">
+    <img src="{{ ticket.guest.photo.url }}" alt="{{ ticket.guest.full_name }}"
+         class="guest-photo-verify" style="border-color:var(--orange-warn);">
     {% else %}
-    <div class="guest-photo-placeholder" style="border-color:var(--orange-warn);"><i class="bi bi-person"></i></div>
+    <div class="guest-photo-placeholder" style="border-color:var(--orange-warn);">
+      <i class="bi bi-person"></i>
+    </div>
     {% endif %}
 
     <h3 style="margin:0.5rem 0 0.25rem;color:white;">{{ ticket.guest.full_name }}</h3>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin:0 0 0.5rem;">{{ ticket.guest.phone_number }}</p>
 
     <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:0.75rem 1rem;margin:0.75rem 0;">
       <div class="verify-info-row">
@@ -73,19 +78,51 @@
         <span class="value">{{ ticket.ticket_type.name }}</span>
       </div>
       <div class="verify-info-row">
-        <span class="label">Checked In At</span>
+        <span class="label">First Check-In</span>
         <span class="value text-orange">{{ ticket.checked_in_at|date:"d M Y, g:i A" }}</span>
       </div>
       <div class="verify-info-row">
         <span class="label">Checked In By</span>
         <span class="value">{{ ticket.checked_in_by.get_full_name|default:ticket.checked_in_by.username|default:"—" }}</span>
       </div>
+      {% if ticket.reentry_logs.count > 0 %}
+      <div class="verify-info-row">
+        <span class="label">Re-Entries</span>
+        <span class="value" style="color:var(--gold);">
+          {{ ticket.reentry_logs.count }} approved re-entr{{ ticket.reentry_logs.count|pluralize:"y,ies" }}
+        </span>
+      </div>
+      <div class="verify-info-row">
+        <span class="label">Last Re-Entry</span>
+        <span class="value" style="color:var(--gold);">
+          {{ ticket.reentry_logs.first.timestamp|date:"g:i A" }}
+          — {{ ticket.reentry_logs.first.approved_by.get_full_name|default:ticket.reentry_logs.first.approved_by.username }}
+        </span>
+      </div>
+      {% endif %}
     </div>
 
+    {% if request.user.profile.can_checkin %}
+    <!-- ── RE-ENTRY APPROVE button — Hall Staff + Admin only ── -->
+    <form method="post" action="{% url 'approve_reentry' ticket.pk %}">
+      {% csrf_token %}
+      <button type="submit"
+              style="width:100%;background:linear-gradient(135deg,#7a5a00,var(--gold));color:#fff;border:none;border-radius:12px;padding:1rem 2rem;font-size:1rem;font-weight:800;letter-spacing:1px;cursor:pointer;margin-top:0.5rem;">
+        🔄 &nbsp; APPROVE RE-ENTRY
+      </button>
+    </form>
+    <p style="font-size:0.75rem;color:var(--text-muted);text-align:center;margin-top:0.5rem;">
+      This will log an authorised re-entry. Ticket status stays USED.
+    </p>
+    {% else %}
     <div class="alert alert-warning" style="margin-top:0.75rem;border-radius:8px;">
       <i class="bi bi-exclamation-triangle"></i>
-      Do NOT allow entry. Contact your supervisor if needed.
+      <div>
+        <strong>Ticket already used.</strong><br>
+        <span style="font-size:0.82rem;">Contact a Hall Staff or Admin to approve re-entry.</span>
+      </div>
     </div>
+    {% endif %}
   </div>
 
   {% elif result == 'CANCELLED' and ticket %}

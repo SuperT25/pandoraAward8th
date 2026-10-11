@@ -81,3 +81,11 @@ class VerificationLogAdmin(admin.ModelAdmin):
     list_filter = ('action', 'result')
     search_fields = ('ticket__ticket_number',)
     readonly_fields = ('timestamp',)
+
+
+from .models import ReEntryLog
+
+@admin.register(ReEntryLog)
+class ReEntryLogAdmin(admin.ModelAdmin):
+    list_display = ('timestamp', 'ticket', 'approved_by', 'ip_address', 'notes')
+    readonly_fields = ('timestamp',)

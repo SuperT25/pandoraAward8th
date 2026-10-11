@@ -35,6 +35,7 @@ urlpatterns = [
 
     # Check-in
     path('checkin/<int:pk>/', views.checkin, name='checkin'),
+    path('reentry/<int:pk>/', views.approve_reentry, name='approve_reentry'),
 
     # Walk-in
     path('walk-in/', views.walkin_register, name='walkin_register'),

@@ -252,3 +252,30 @@ class UserProfile(models.Model):
     def can_verify(self):
         """All roles can verify/search tickets."""
         return True
+
+
+# ---------------------------------------------------------------------------
+# ReEntryLog — tracks authorised re-entries for already-used tickets
+# ---------------------------------------------------------------------------
+
+class ReEntryLog(models.Model):
+    ticket = models.ForeignKey(
+        Ticket,
+        on_delete=models.CASCADE,
+        related_name='reentry_logs',
+    )
+    approved_by = models.ForeignKey(
+        User,
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='approved_reentries',
+    )
+    timestamp = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    notes = models.CharField(max_length=200, blank=True, default='Authorised re-entry')
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"Re-Entry: {self.ticket.ticket_number} @ {self.timestamp:%Y-%m-%d %H:%M} by {self.approved_by}"

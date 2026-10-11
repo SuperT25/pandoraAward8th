@@ -29,14 +29,20 @@
       {% include 'tickets/_ticket_info_rows.html' with ticket=ticket %}
     </div>
 
-    <!-- CHECK IN button -->
-    {% if ticket.is_active %}
+    <!-- CHECK IN button — Hall Staff and Admin only, not Gate Staff -->
+    {% if ticket.is_active and request.user.profile.can_checkin %}
     <form method="post" action="{% url 'checkin' ticket.pk %}">
       {% csrf_token %}
       <button type="submit" class="btn-checkin">
         ✅ &nbsp; CHECK IN GUEST
       </button>
     </form>
+    {% elif ticket.is_active and not request.user.profile.can_checkin %}
+    <div class="alert alert-info" style="margin-top:1rem;border-radius:8px;text-align:center;">
+      <i class="bi bi-info-circle"></i>
+      <strong>Ticket is VALID.</strong><br>
+      <span style="font-size:0.85rem;">Direct guest to <strong>Gate 2 — Event Hall</strong> for check-in.</span>
+    </div>
     {% endif %}
   </div>
 

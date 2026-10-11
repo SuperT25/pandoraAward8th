@@ -13,9 +13,25 @@
   <div class="card">
     <div style="text-align:center;margin-bottom:1.25rem;">
       <h2 style="margin:0;font-size:1.4rem;">🏆 Pandora Awards</h2>
+      {% if request.user.profile.role == 'GATE_STAFF' %}
+      <p style="color:var(--gold);font-size:0.9rem;font-weight:700;margin:4px 0 0;">
+        🚪 GATE 1 — VENUE ENTRANCE
+      </p>
+      <p style="color:var(--text-muted);font-size:0.78rem;margin:2px 0 0;">
+        Verify ticket validity. Direct guests to Gate 2 for check-in.
+      </p>
+      {% elif request.user.profile.role == 'HALL_STAFF' %}
+      <p style="color:var(--green-ok);font-size:0.9rem;font-weight:700;margin:4px 0 0;">
+        🏛️ GATE 2 — EVENT HALL
+      </p>
+      <p style="color:var(--text-muted);font-size:0.78rem;margin:2px 0 0;">
+        Verify and check in guests. Marks ticket as USED.
+      </p>
+      {% else %}
       <p style="color:var(--text-muted);font-size:0.85rem;margin:4px 0 0;">
         8th Edition · Verification Portal
       </p>
+      {% endif %}
     </div>
 
     <!-- Option 1: Ticket number or phone -->

@@ -1,9 +1,10 @@
 """
 Pandora E-Ticket System — Role-based access decorators
 
-Two roles:
-  ADMIN  — full access (register guests, manage tickets, reports, events, staff)
-  STAFF  — verification only (search, verify, check-in)
+Three roles:
+  ADMIN      — full access
+  GATE_STAFF — Gate 1 (venue entrance): verify/search only, no check-in
+  HALL_STAFF — Gate 2 (event hall): verify + check-in
 """
 
 from functools import wraps
@@ -31,17 +32,22 @@ def role_required(*roles):
 
 
 def admin_required(view_func):
-    """Admin only — full access."""
+    """Admin only."""
     return role_required('ADMIN')(view_func)
 
 
-def any_staff_required(view_func):
-    """Both ADMIN and STAFF can access — used for verify/check-in views."""
-    return role_required('ADMIN', 'STAFF')(view_func)
+def verify_staff_required(view_func):
+    """All roles can access verify pages."""
+    return role_required('ADMIN', 'GATE_STAFF', 'HALL_STAFF')(view_func)
 
 
-# Aliases for backward compatibility with existing view decorators
+def checkin_required(view_func):
+    """Only ADMIN and HALL_STAFF can check in guests."""
+    return role_required('ADMIN', 'HALL_STAFF')(view_func)
+
+
+# Aliases for backward compatibility
 super_admin_required  = admin_required
 ticket_admin_required = admin_required
-walkin_staff_required = any_staff_required
-verify_staff_required = any_staff_required
+walkin_staff_required = admin_required
+any_staff_required    = verify_staff_required

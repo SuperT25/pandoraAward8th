@@ -17,6 +17,7 @@ from django.views.decorators.http import require_POST
 from .decorators import (
     super_admin_required, ticket_admin_required,
     walkin_staff_required, verify_staff_required,
+    checkin_required,
 )
 from .forms import (
     GuestRegistrationForm, TicketCreateForm, WalkInRegistrationForm,
@@ -57,8 +58,8 @@ def logout_view(request):
 
 @login_required
 def dashboard(request):
-    # Staff go straight to verify portal — they have no admin access
-    if request.user.profile.role == 'STAFF':
+    # Gate Staff and Hall Staff go straight to verify portal
+    if request.user.profile.role in ('GATE_STAFF', 'HALL_STAFF'):
         return redirect('verify_portal')
 
     active_event = Event.objects.filter(active=True).first()
@@ -423,7 +424,7 @@ def _render_ticket_result(request, ticket):
 # ===========================================================================
 
 @login_required
-@verify_staff_required
+@checkin_required
 @require_POST
 def checkin(request, pk):
     ip = get_client_ip(request)

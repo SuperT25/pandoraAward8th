@@ -106,6 +106,13 @@ class TicketTypeForm(forms.ModelForm):
 # Staff / user management
 # ---------------------------------------------------------------------------
 
+ROLE_CHOICES = [
+    ('ADMIN',      'Admin — Full Access (Register guests, manage tickets, reports)'),
+    ('GATE_STAFF', 'Gate Staff — Gate 1 Venue Entrance (Verify identity only, no check-in)'),
+    ('HALL_STAFF', 'Hall Staff — Gate 2 Event Hall (Verify + Check-in guests)'),
+]
+
+
 class StaffCreateForm(forms.Form):
     username = forms.CharField(max_length=150)
     first_name = forms.CharField(max_length=150)
@@ -113,8 +120,8 @@ class StaffCreateForm(forms.Form):
     email = forms.EmailField(required=False)
     password = forms.CharField(widget=forms.PasswordInput())
     role = forms.ChoiceField(
-        choices=[('ADMIN', 'Admin — Full Access'), ('STAFF', 'Staff — Verification Only')],
-        help_text='Admin: can register guests, manage tickets, view reports. Staff: can only verify and check-in guests.'
+        choices=ROLE_CHOICES,
+        help_text='Gate 1 = venue entrance (verify only). Gate 2 = event hall (verify + check-in).'
     )
 
     def clean_username(self):
@@ -128,9 +135,7 @@ class StaffEditForm(forms.Form):
     first_name = forms.CharField(max_length=150)
     last_name = forms.CharField(max_length=150)
     email = forms.EmailField(required=False)
-    role = forms.ChoiceField(
-        choices=[('ADMIN', 'Admin — Full Access'), ('STAFF', 'Staff — Verification Only')],
-    )
+    role = forms.ChoiceField(choices=ROLE_CHOICES)
     is_active = forms.BooleanField(required=False)
 
 

@@ -200,16 +200,20 @@ class VerificationLog(models.Model):
 
 # ---------------------------------------------------------------------------
 # UserProfile — role management
-# Two roles: ADMIN (full access) | STAFF (verify only)
+# Three roles:
+#   ADMIN      — full access
+#   GATE_STAFF — Gate 1 (venue entrance): verify identity, no check-in
+#   HALL_STAFF — Gate 2 (event hall): verify + check-in
 # ---------------------------------------------------------------------------
 
 class UserProfile(models.Model):
     class Role(models.TextChoices):
-        ADMIN = 'ADMIN', 'Admin'
-        STAFF = 'STAFF', 'Staff'
+        ADMIN      = 'ADMIN',      'Admin'
+        GATE_STAFF = 'GATE_STAFF', 'Gate Staff (Venue Entrance — Gate 1)'
+        HALL_STAFF = 'HALL_STAFF', 'Hall Staff (Event Hall — Gate 2)'
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    role = models.CharField(max_length=10, choices=Role.choices, default=Role.STAFF)
+    role = models.CharField(max_length=15, choices=Role.choices, default=Role.GATE_STAFF)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -225,7 +229,7 @@ class UserProfile(models.Model):
 
     @property
     def can_register_walkin(self):
-        return True  # Both roles can do walk-in on event day
+        return self.role == self.Role.ADMIN
 
     @property
     def can_cancel_ticket(self):
@@ -238,3 +242,13 @@ class UserProfile(models.Model):
     @property
     def can_manage_users(self):
         return self.role == self.Role.ADMIN
+
+    @property
+    def can_checkin(self):
+        """Only Hall Staff and Admin can check in guests."""
+        return self.role in (self.Role.ADMIN, self.Role.HALL_STAFF)
+
+    @property
+    def can_verify(self):
+        """All roles can verify/search tickets."""
+        return True

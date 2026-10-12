@@ -1,75 +1,165 @@
 {% extends 'tickets/base.html' %}
-{% block title %}Gate 2 Check-In — Pandora{% endblock %}
-{% block page_title %}Gate 2 — Check-In{% endblock %}
+{% block title %}Gate 2 — Check-In Dashboard{% endblock %}
+{% block page_title %}Gate 2 — Event Hall{% endblock %}
 
 {% block extra_head %}
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+  /* Auto-refresh pulse on queue count */
+  .queue-count {
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+  .queue-card {
+    background: rgba(0,80,0,0.12);
+    border: 1.5px solid var(--green-ok);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: background 0.2s;
+  }
+  .queue-card:hover { background: rgba(0,80,0,0.22); }
+  .checked-card {
+    background: rgba(201,150,12,0.06);
+    border: 1px solid var(--dark3);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    opacity: 0.85;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="verify-search-card">
-  <div class="card" style="border-color:var(--green-ok);">
 
-    <div style="text-align:center;margin-bottom:1.25rem;">
-      <span style="font-size:2.5rem;">🏛️</span>
-      <h2 style="margin:0.25rem 0 0;font-size:1.4rem;color:var(--green-ok);">GATE 2 — EVENT HALL</h2>
-      <p style="color:var(--text-muted);font-size:0.82rem;margin:4px 0 0;">
-        Check-In Station · Pandora Awards 8th Edition
-      </p>
-    </div>
+<!-- Stats bar -->
+<div class="stat-grid" style="grid-template-columns:repeat(2,1fr);max-width:400px;margin-bottom:1.25rem;">
+  <div class="stat-card" style="border-color:var(--green-ok);">
+    <div class="stat-value queue-count" style="color:var(--green-ok);">{{ queue_count }}</div>
+    <div class="stat-label">Waiting at Gate 2</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color:var(--gold);">{{ checked_in_count }}</div>
+    <div class="stat-label">Checked In Today</div>
+  </div>
+</div>
 
-    <!-- Search form -->
-    <form method="post" action="{% url 'verify_search' %}">
-      {% csrf_token %}
-      <input type="hidden" name="checkin_mode" value="1">
-      <label style="text-align:center;display:block;color:var(--gold-light);margin-bottom:0.5rem;">
-        Enter Ticket Number or Phone Number
-      </label>
-      <div class="verify-input-group">
-        <input type="text" name="query" id="verify-query"
-               placeholder="e.g. PDR26-X7K92M or 08012345678"
-               autocomplete="off" autocorrect="off" autocapitalize="characters"
-               style="font-size:1.05rem;padding:0.85rem 1rem;letter-spacing:1px;">
-        <button type="submit" class="btn-gold" style="padding:0.85rem 1.4rem;background:linear-gradient(135deg,#004d00,var(--green-ok));">
-          <i class="bi bi-check-circle"></i> Check In
-        </button>
-      </div>
-    </form>
-
-    <div class="divider-or">OR</div>
-
-    <!-- QR Scanner -->
-    <div style="text-align:center;">
-      <label style="color:var(--gold-light);display:block;margin-bottom:0.5rem;">
-        Scan QR Code
-      </label>
-      <button id="btn-scan-qr" class="btn-gold"
-              style="width:100%;justify-content:center;padding:0.85rem;background:linear-gradient(135deg,#004d00,var(--green-ok));">
-        <i class="bi bi-qr-code-scan"></i> &nbsp; Scan QR to Check-In
-      </button>
-      <div id="qr-scanner-container" style="display:none;margin-top:1rem;">
-        <div id="qr-reader" style="width:100%;border-radius:10px;overflow:hidden;"></div>
-        <p style="font-size:0.78rem;color:var(--text-muted);margin-top:0.5rem;">
-          Scanning will automatically check in the guest.
-        </p>
-      </div>
-    </div>
-
+<!-- Live Queue -->
+<div class="card" style="border-color:var(--green-ok);">
+  <div class="card-header">
+    <h3 style="color:var(--green-ok);">
+      <i class="bi bi-people-fill"></i>
+      Queue — Waiting for Check-In
+      {% if queue_count > 0 %}
+      <span style="background:var(--green-ok);color:#000;border-radius:20px;padding:0.1rem 0.6rem;font-size:0.8rem;margin-left:0.5rem;">
+        {{ queue_count }}
+      </span>
+      {% endif %}
+    </h3>
+    <span style="font-size:0.75rem;color:var(--text-muted);">Auto-refreshes every 10s</span>
   </div>
 
-  <p style="text-align:center;font-size:0.75rem;color:var(--text-muted);margin-top:1rem;">
-    Staff: {{ user.get_full_name|default:user.username }} &nbsp;·&nbsp;
-    <span style="color:var(--green-ok);">Gate 2 — Hall Staff</span>
-  </p>
+  {% if verified_queue %}
+    {% for ticket in verified_queue %}
+    <div class="queue-card">
+
+      <!-- Photo -->
+      {% if ticket.guest.photo %}
+      <img src="{{ ticket.guest.photo.url }}" alt=""
+           style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid var(--green-ok);flex-shrink:0;">
+      {% else %}
+      <div style="width:56px;height:56px;border-radius:50%;background:var(--dark3);border:2px solid var(--green-ok);display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--green-ok);flex-shrink:0;">
+        <i class="bi bi-person"></i>
+      </div>
+      {% endif %}
+
+      <!-- Guest info -->
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:1rem;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+          {{ ticket.guest.full_name }}
+        </div>
+        <div style="font-size:0.8rem;color:var(--text-muted);">
+          {{ ticket.ticket_type.name }}
+          &nbsp;·&nbsp;
+          <span class="ticket-number-display" style="font-size:0.78rem;">{{ ticket.ticket_number }}</span>
+        </div>
+        <div style="font-size:0.75rem;color:#1a8aff;margin-top:2px;">
+          <i class="bi bi-clock"></i>
+          Verified {{ ticket.verified_at|timesince }} ago
+          by {{ ticket.verified_by.get_full_name|default:ticket.verified_by.username }}
+        </div>
+      </div>
+
+      <!-- CHECK IN button -->
+      <form method="post" action="{% url 'checkin' ticket.pk %}" style="flex-shrink:0;">
+        {% csrf_token %}
+        <button type="submit"
+                style="background:var(--green-ok);color:#000;border:none;border-radius:10px;padding:0.65rem 1.1rem;font-weight:800;font-size:0.9rem;cursor:pointer;white-space:nowrap;">
+          ✅ CHECK IN
+        </button>
+      </form>
+    </div>
+    {% endfor %}
+  {% else %}
+  <div style="text-align:center;padding:2.5rem;color:var(--text-muted);">
+    <i class="bi bi-hourglass" style="font-size:2.5rem;display:block;margin-bottom:0.5rem;"></i>
+    No guests waiting yet.<br>
+    <span style="font-size:0.82rem;">Guests verified at Gate 1 will appear here.</span>
+  </div>
+  {% endif %}
 </div>
+
+<!-- Checked In list -->
+{% if checked_in_today %}
+<div class="card">
+  <div class="card-header">
+    <h3><i class="bi bi-check-circle" style="color:var(--gold);"></i> Checked In</h3>
+    <span style="font-size:0.8rem;color:var(--text-muted);">Last 30</span>
+  </div>
+
+  {% for ticket in checked_in_today %}
+  <div class="checked-card">
+    {% if ticket.guest.photo %}
+    <img src="{{ ticket.guest.photo.url }}" alt=""
+         style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:1.5px solid var(--gold);flex-shrink:0;">
+    {% else %}
+    <div style="width:40px;height:40px;border-radius:50%;background:var(--dark3);display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0;">
+      <i class="bi bi-person"></i>
+    </div>
+    {% endif %}
+
+    <div style="flex:1;min-width:0;">
+      <div style="font-weight:600;font-size:0.9rem;color:white;">{{ ticket.guest.full_name }}</div>
+      <div style="font-size:0.75rem;color:var(--text-muted);">
+        {{ ticket.ticket_type.name }}
+        &nbsp;·&nbsp;
+        {{ ticket.checked_in_at|date:"g:i A" }}
+        &nbsp;·&nbsp;
+        {{ ticket.checked_in_by.get_full_name|default:ticket.checked_in_by.username }}
+      </div>
+    </div>
+
+    <span class="badge badge-used">DONE</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  const btn = document.getElementById('btn-scan-qr');
-  if (!btn) return;
-  btn.dataset.verifyBase = '/verify/qr/';
-});
+  // Auto-refresh the page every 10 seconds to get new guests from Gate 1
+  setTimeout(function() {
+    window.location.reload();
+  }, 10000);
 </script>
 {% endblock %}

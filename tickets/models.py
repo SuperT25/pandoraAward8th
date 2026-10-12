@@ -101,8 +101,9 @@ class Guest(models.Model):
 
 class Ticket(models.Model):
     class Status(models.TextChoices):
-        ACTIVE = 'ACTIVE', 'Active'
-        USED = 'USED', 'Used'
+        ACTIVE    = 'ACTIVE',    'Active'
+        VERIFIED  = 'VERIFIED',  'Verified (Gate 1 — Awaiting Check-In)'
+        USED      = 'USED',      'Used (Checked In)'
         CANCELLED = 'CANCELLED', 'Cancelled'
 
     guest = models.ForeignKey(Guest, on_delete=models.PROTECT, related_name='tickets')
@@ -116,6 +117,12 @@ class Ticket(models.Model):
         default=Status.ACTIVE,
     )
     issued_at = models.DateTimeField(auto_now_add=True)
+    verified_at = models.DateTimeField(null=True, blank=True)
+    verified_by = models.ForeignKey(
+        User, null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='verified_tickets',
+    )
     checked_in_at = models.DateTimeField(null=True, blank=True)
     checked_in_by = models.ForeignKey(
         User, null=True, blank=True,
@@ -148,6 +155,10 @@ class Ticket(models.Model):
     @property
     def is_active(self):
         return self.status == self.Status.ACTIVE
+
+    @property
+    def is_verified(self):
+        return self.status == self.Status.VERIFIED
 
     @property
     def is_used(self):

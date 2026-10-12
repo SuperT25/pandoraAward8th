@@ -29,19 +29,51 @@
       {% include 'tickets/_ticket_info_rows.html' with ticket=ticket %}
     </div>
 
-    <!-- CHECK IN button — Hall Staff and Admin only, not Gate Staff -->
-    {% if ticket.is_active and request.user.profile.can_checkin %}
-    <form method="post" action="{% url 'checkin' ticket.pk %}">
-      {% csrf_token %}
-      <button type="submit" class="btn-checkin">
-        ✅ &nbsp; CHECK IN GUEST
-      </button>
-    </form>
-    {% elif ticket.is_active and not request.user.profile.can_checkin %}
+    <!-- CHECK IN / VERIFY button based on role -->
+    {% if ticket.is_active %}
+      {% if request.user.profile.role == 'GATE_STAFF' or request.user.profile.role == 'ADMIN' %}
+      <!-- Gate 1 — VERIFY sends to Gate 2 queue -->
+      <form method="post" action="{% url 'gate1_verify' ticket.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-checkin" style="background:linear-gradient(135deg,#0a4a8a,#1a8aff);">
+          ✅ &nbsp; VERIFY — SEND TO GATE 2
+        </button>
+      </form>
+      {% endif %}
+      {% if request.user.profile.can_checkin and request.user.profile.role != 'GATE_STAFF' %}
+      <!-- Hall Staff / Admin direct check-in -->
+      <form method="post" action="{% url 'checkin' ticket.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-checkin">
+          ✅ &nbsp; CHECK IN GUEST
+        </button>
+      </form>
+      {% endif %}
+    {% elif ticket.is_verified %}
+      {% if request.user.profile.can_checkin %}
+      <!-- Already verified at Gate 1 — Gate 2 can check in -->
+      <div class="alert alert-info" style="margin-bottom:0.75rem;border-radius:8px;">
+        <i class="bi bi-check-circle"></i>
+        <strong>Verified at Gate 1</strong> by {{ ticket.verified_by.get_full_name|default:ticket.verified_by.username }}
+        at {{ ticket.verified_at|date:"g:i A" }}
+      </div>
+      <form method="post" action="{% url 'checkin' ticket.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-checkin">
+          ✅ &nbsp; CHECK IN GUEST
+        </button>
+      </form>
+      {% else %}
+      <div class="alert alert-info" style="margin-top:1rem;border-radius:8px;text-align:center;">
+        <i class="bi bi-check-circle"></i>
+        <strong>✅ Verified — Proceed to Gate 2.</strong>
+      </div>
+      {% endif %}
+    {% elif not request.user.profile.can_checkin %}
     <div class="alert alert-info" style="margin-top:1rem;border-radius:8px;text-align:center;">
       <i class="bi bi-info-circle"></i>
       <strong>Ticket is VALID.</strong><br>
-      <span style="font-size:0.85rem;">Direct guest to <strong>Gate 2 — Event Hall</strong> for check-in.</span>
+      <span style="font-size:0.85rem;">Direct guest to <strong>Gate 2 — Event Hall</strong>.</span>
     </div>
     {% endif %}
   </div>

@@ -71,6 +71,7 @@ def dashboard(request):
     total = Ticket.objects.count()
     pre_reg = Ticket.objects.filter(guest__registration_source='PRE_REGISTERED').count()
     walk_in = Ticket.objects.filter(guest__registration_source='WALK_IN').count()
+    verified = Ticket.objects.filter(status='VERIFIED').count()
     checked_in = Ticket.objects.filter(status='USED').count()
     not_checked_in = Ticket.objects.filter(status='ACTIVE').count()
     cancelled = Ticket.objects.filter(status='CANCELLED').count()
@@ -94,6 +95,7 @@ def dashboard(request):
         'total': total,
         'pre_reg': pre_reg,
         'walk_in': walk_in,
+        'verified': verified,
         'checked_in': checked_in,
         'not_checked_in': not_checked_in,
         'cancelled': cancelled,
@@ -307,12 +309,25 @@ def verify_portal(request):
 @checkin_required
 def checkin_portal(request):
     """
-    Gate 2 — Event Hall.
-    Hall Staff searches/scans and immediately gets the check-in screen.
-    No verify step — straight to check-in.
+    Gate 2 — Event Hall dashboard.
+    Shows live queue of VERIFIED tickets (sent from Gate 1).
+    After check-in, ticket disappears from queue and appears in checked-in list.
+    Auto-refreshes every 10 seconds.
     """
-    form = VerifyTicketForm()
-    return render(request, 'tickets/checkin_portal.html', {'form': form})
+    verified_queue = Ticket.objects.filter(
+        status=Ticket.Status.VERIFIED
+    ).select_related('guest', 'ticket_type', 'event', 'verified_by').order_by('verified_at')
+
+    checked_in_today = Ticket.objects.filter(
+        status=Ticket.Status.USED
+    ).select_related('guest', 'ticket_type', 'checked_in_by').order_by('-checked_in_at')[:30]
+
+    return render(request, 'tickets/checkin_portal.html', {
+        'verified_queue': verified_queue,
+        'checked_in_today': checked_in_today,
+        'queue_count': verified_queue.count(),
+        'checked_in_count': Ticket.objects.filter(status=Ticket.Status.USED).count(),
+    })
 
 
 @login_required
@@ -417,7 +432,7 @@ def verify_by_qr_catchall(request, raw_path):
 
 
 def _log_verify(ticket, user, ip, notes=''):
-    if ticket.is_active:
+    if ticket.is_active or ticket.is_verified:
         result = VerificationLog.Result.VALID
     elif ticket.is_used:
         result = VerificationLog.Result.ALREADY_USED
@@ -433,6 +448,8 @@ def _log_verify(ticket, user, ip, notes=''):
 def _render_ticket_result(request, ticket):
     if ticket.is_active:
         result = 'VALID'
+    elif ticket.is_verified:
+        result = 'VERIFIED'
     elif ticket.is_used:
         result = 'ALREADY_USED'
     else:
@@ -440,6 +457,45 @@ def _render_ticket_result(request, ticket):
     return render(request, 'tickets/verify_result.html', {
         'result': result, 'ticket': ticket,
     })
+
+
+# ===========================================================================
+# GATE 1 VERIFY — marks ticket VERIFIED (sends to Gate 2 queue)
+# ===========================================================================
+
+@login_required
+@verify_staff_required
+@require_POST
+def gate1_verify(request, pk):
+    """
+    Gate 1 action: mark ticket as VERIFIED.
+    This puts the guest in Gate 2's check-in queue.
+    Ticket: ACTIVE → VERIFIED
+    """
+    ip = get_client_ip(request)
+    with transaction.atomic():
+        ticket = get_object_or_404(
+            Ticket.objects.select_for_update().select_related('guest', 'event', 'ticket_type'),
+            pk=pk
+        )
+        if ticket.status != Ticket.Status.ACTIVE:
+            # Already verified, used or cancelled
+            return _render_ticket_result(request, ticket)
+
+        ticket.status = Ticket.Status.VERIFIED
+        ticket.verified_at = timezone.now()
+        ticket.verified_by = request.user
+        ticket.save()
+
+        VerificationLog.objects.create(
+            ticket=ticket, staff_user=request.user,
+            action=VerificationLog.Action.VERIFY,
+            result=VerificationLog.Result.VALID,
+            ip_address=ip,
+            notes="Gate 1 verified — sent to Gate 2 queue.",
+        )
+
+    return render(request, 'tickets/gate1_verified.html', {'ticket': ticket})
 
 
 # ===========================================================================
@@ -457,7 +513,7 @@ def checkin(request, pk):
             Ticket.objects.select_for_update().select_related('guest', 'event', 'ticket_type'),
             pk=pk
         )
-        if ticket.status != Ticket.Status.ACTIVE:
+        if ticket.status not in (Ticket.Status.ACTIVE, Ticket.Status.VERIFIED):
             # Already used or cancelled — reject
             VerificationLog.objects.create(
                 ticket=ticket, staff_user=request.user,
@@ -481,6 +537,12 @@ def checkin(request, pk):
             result=VerificationLog.Result.VALID,
             ip_address=ip, notes="Guest checked in successfully.",
         )
+
+    # Hall Staff go back to Gate 2 dashboard (queue updates automatically)
+    # Admin and Gate Staff see the success page
+    if request.user.profile.role == 'HALL_STAFF':
+        messages.success(request, f"✅ {ticket.guest.full_name} checked in.")
+        return redirect('checkin_portal')
 
     return render(request, 'tickets/checkin_success.html', {'ticket': ticket})
 

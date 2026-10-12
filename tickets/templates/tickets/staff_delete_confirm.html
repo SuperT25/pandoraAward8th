@@ -1,0 +1,49 @@
+{% extends 'tickets/base.html' %}
+{% block title %}Delete Staff Account — Pandora{% endblock %}
+{% block page_title %}Delete Staff Account{% endblock %}
+
+{% block content %}
+<div style="max-width:480px;margin:0 auto;">
+  <div class="card" style="border-color:#7a0000;text-align:center;">
+
+    <div style="font-size:3rem;margin-bottom:0.5rem;">⚠️</div>
+    <h3 style="color:var(--red-warn);">Delete This Account?</h3>
+
+    <div style="background:var(--dark2);border-radius:10px;padding:1rem;margin:1rem 0;text-align:left;">
+      <div class="verify-info-row">
+        <span class="label">Username</span>
+        <span class="value">{{ user_obj.username }}</span>
+      </div>
+      <div class="verify-info-row">
+        <span class="label">Full Name</span>
+        <span class="value">{{ user_obj.get_full_name|default:"—" }}</span>
+      </div>
+      <div class="verify-info-row">
+        <span class="label">Role</span>
+        <span class="value">{{ profile.get_role_display }}</span>
+      </div>
+      <div class="verify-info-row">
+        <span class="label">Email</span>
+        <span class="value">{{ user_obj.email|default:"—" }}</span>
+      </div>
+    </div>
+
+    <p style="color:var(--red-warn);font-size:0.875rem;">
+      This will permanently delete the account. This action cannot be undone.
+    </p>
+
+    <div style="display:flex;gap:0.75rem;justify-content:center;margin-top:1rem;">
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn-danger-pandora">
+          <i class="bi bi-trash"></i> Yes, Delete Account
+        </button>
+      </form>
+      <a href="{% url 'staff_list' %}" class="btn-outline-gold">
+        <i class="bi bi-arrow-left"></i> Cancel
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

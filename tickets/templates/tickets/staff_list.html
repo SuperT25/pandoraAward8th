@@ -33,6 +33,11 @@
             <a href="{% url 'staff_edit' profile.pk %}" class="btn-outline-gold" style="padding:0.3rem 0.75rem;font-size:0.78rem;">
               <i class="bi bi-pencil"></i> Edit
             </a>
+            {% if profile.user != request.user %}
+            <a href="{% url 'staff_delete' profile.pk %}" class="btn-danger-pandora" style="padding:0.3rem 0.75rem;font-size:0.78rem;margin-left:0.3rem;">
+              <i class="bi bi-trash"></i> Delete
+            </a>
+            {% endif %}
           </td>
         </tr>
         {% empty %}

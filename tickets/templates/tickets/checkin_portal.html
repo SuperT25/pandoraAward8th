@@ -1,0 +1,75 @@
+{% extends 'tickets/base.html' %}
+{% block title %}Gate 2 Check-In — Pandora{% endblock %}
+{% block page_title %}Gate 2 — Check-In{% endblock %}
+
+{% block extra_head %}
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="verify-search-card">
+  <div class="card" style="border-color:var(--green-ok);">
+
+    <div style="text-align:center;margin-bottom:1.25rem;">
+      <span style="font-size:2.5rem;">🏛️</span>
+      <h2 style="margin:0.25rem 0 0;font-size:1.4rem;color:var(--green-ok);">GATE 2 — EVENT HALL</h2>
+      <p style="color:var(--text-muted);font-size:0.82rem;margin:4px 0 0;">
+        Check-In Station · Pandora Awards 8th Edition
+      </p>
+    </div>
+
+    <!-- Search form -->
+    <form method="post" action="{% url 'verify_search' %}">
+      {% csrf_token %}
+      <input type="hidden" name="checkin_mode" value="1">
+      <label style="text-align:center;display:block;color:var(--gold-light);margin-bottom:0.5rem;">
+        Enter Ticket Number or Phone Number
+      </label>
+      <div class="verify-input-group">
+        <input type="text" name="query" id="verify-query"
+               placeholder="e.g. PDR26-X7K92M or 08012345678"
+               autocomplete="off" autocorrect="off" autocapitalize="characters"
+               style="font-size:1.05rem;padding:0.85rem 1rem;letter-spacing:1px;">
+        <button type="submit" class="btn-gold" style="padding:0.85rem 1.4rem;background:linear-gradient(135deg,#004d00,var(--green-ok));">
+          <i class="bi bi-check-circle"></i> Check In
+        </button>
+      </div>
+    </form>
+
+    <div class="divider-or">OR</div>
+
+    <!-- QR Scanner -->
+    <div style="text-align:center;">
+      <label style="color:var(--gold-light);display:block;margin-bottom:0.5rem;">
+        Scan QR Code
+      </label>
+      <button id="btn-scan-qr" class="btn-gold"
+              style="width:100%;justify-content:center;padding:0.85rem;background:linear-gradient(135deg,#004d00,var(--green-ok));">
+        <i class="bi bi-qr-code-scan"></i> &nbsp; Scan QR to Check-In
+      </button>
+      <div id="qr-scanner-container" style="display:none;margin-top:1rem;">
+        <div id="qr-reader" style="width:100%;border-radius:10px;overflow:hidden;"></div>
+        <p style="font-size:0.78rem;color:var(--text-muted);margin-top:0.5rem;">
+          Scanning will automatically check in the guest.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <p style="text-align:center;font-size:0.75rem;color:var(--text-muted);margin-top:1rem;">
+    Staff: {{ user.get_full_name|default:user.username }} &nbsp;·&nbsp;
+    <span style="color:var(--green-ok);">Gate 2 — Hall Staff</span>
+  </p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const btn = document.getElementById('btn-scan-qr');
+  if (!btn) return;
+  btn.dataset.verifyBase = '/verify/qr/';
+});
+</script>
+{% endblock %}

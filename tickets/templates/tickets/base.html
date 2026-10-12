@@ -170,15 +170,11 @@
     {% if user.profile.is_ticket_admin %}
     <a href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
     {% endif %}
-    <a href="{% url 'verify_portal' %}" style="background:rgba(201,150,12,0.08);">
+    <a href="{% if user.profile.role == 'HALL_STAFF' %}{% url 'checkin_portal' %}{% else %}{% url 'verify_portal' %}{% endif %}" style="background:rgba(201,150,12,0.08);">
       <i class="bi bi-qr-code-scan"></i>
-      {% if user.profile.role == 'GATE_STAFF' %}
-      Gate 1 — Verify Ticket
-      {% elif user.profile.role == 'HALL_STAFF' %}
-      Gate 2 — Check-In
-      {% else %}
-      Verify Ticket
-      {% endif %}
+      {% if user.profile.role == 'GATE_STAFF' %}Gate 1 — Verify Ticket
+      {% elif user.profile.role == 'HALL_STAFF' %}Gate 2 — Check-In
+      {% else %}Verify Ticket{% endif %}
     </a>
 
     {% if user.profile.can_register_walkin %}
@@ -239,12 +235,12 @@
       {% if user.profile.is_ticket_admin %}
       <a href="{% url 'dashboard' %}"><span class="icon"><i class="bi bi-speedometer2"></i></span> Dashboard</a>
       {% endif %}
-      <a href="{% url 'verify_portal' %}"><span class="icon"><i class="bi bi-qr-code-scan"></i></span>
+      <a href="{% if user.profile.role == 'HALL_STAFF' %}{% url 'checkin_portal' %}{% else %}{% url 'verify_portal' %}{% endif %}">
+        <span class="icon"><i class="bi bi-qr-code-scan"></i></span>
         {% if user.profile.role == 'GATE_STAFF' %}Gate 1 — Verify
         {% elif user.profile.role == 'HALL_STAFF' %}Gate 2 — Check-In
         {% else %}Verify Ticket{% endif %}
       </a>
-
       {% if user.profile.can_register_walkin %}
       <a href="{% url 'walkin_register' %}"><span class="icon"><i class="bi bi-person-plus"></i></span> Walk-In Registration</a>
       {% endif %}
@@ -320,7 +316,7 @@
       <i class="bi bi-speedometer2"></i>
       <span>Dashboard</span>
     </a>
-    <a href="{% url 'verify_portal' %}" class="verify-btn">
+    <a href="{% if user.profile.role == 'HALL_STAFF' %}{% url 'checkin_portal' %}{% else %}{% url 'verify_portal' %}{% endif %}" class="verify-btn">
       <i class="bi bi-qr-code-scan"></i>
       {% if user.profile.role == 'GATE_STAFF' %}
       <span>Gate 1</span>

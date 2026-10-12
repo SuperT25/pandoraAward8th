@@ -58,9 +58,13 @@ def logout_view(request):
 
 @login_required
 def dashboard(request):
-    # Gate Staff and Hall Staff go straight to verify portal
-    if request.user.profile.role in ('GATE_STAFF', 'HALL_STAFF'):
+    # Gate Staff → verify portal (Gate 1)
+    # Hall Staff → check-in portal (Gate 2)
+    role = request.user.profile.role
+    if role == 'GATE_STAFF':
         return redirect('verify_portal')
+    if role == 'HALL_STAFF':
+        return redirect('checkin_portal')
 
     active_event = Event.objects.filter(active=True).first()
 
@@ -282,14 +286,33 @@ def ticket_cancel(request, pk):
 
 
 # ===========================================================================
-# VERIFICATION PORTAL
+# VERIFICATION PORTAL — Gate 1 (GATE_STAFF + ADMIN)
 # ===========================================================================
 
 @login_required
 @verify_staff_required
 def verify_portal(request):
+    # HALL_STAFF should not be here — redirect them to check-in portal
+    if request.user.profile.role == 'HALL_STAFF':
+        return redirect('checkin_portal')
     form = VerifyTicketForm()
     return render(request, 'tickets/verify_portal.html', {'form': form})
+
+
+# ===========================================================================
+# CHECK-IN PORTAL — Gate 2 (HALL_STAFF + ADMIN only)
+# ===========================================================================
+
+@login_required
+@checkin_required
+def checkin_portal(request):
+    """
+    Gate 2 — Event Hall.
+    Hall Staff searches/scans and immediately gets the check-in screen.
+    No verify step — straight to check-in.
+    """
+    form = VerifyTicketForm()
+    return render(request, 'tickets/checkin_portal.html', {'form': form})
 
 
 @login_required

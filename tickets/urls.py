@@ -25,13 +25,15 @@ urlpatterns = [
     path('tickets/<int:pk>/view/', views.ticket_view_pdf, name='ticket_view_pdf'),
     path('tickets/<int:pk>/cancel/', views.ticket_cancel, name='ticket_cancel'),
 
-    # Verification portal
+    # Verification portal — Gate 1 (GATE_STAFF + ADMIN)
     path('verify/', views.verify_portal, name='verify_portal'),
     path('verify/search/', views.verify_search, name='verify_search'),
-    # Catch-all QR pattern — extracts token regardless of what's in the path
     re_path(r'^verify/qr/(?P<qr_token>[a-f0-9]{32})/$', views.verify_by_qr, name='verify_by_qr'),
     re_path(r'^verify/qr/(?P<raw_path>.+)$', views.verify_by_qr_catchall, name='verify_by_qr_catchall'),
     path('verify/direct/<int:pk>/', views.verify_result_direct, name='verify_result_direct'),
+
+    # Check-in portal — Gate 2 (HALL_STAFF + ADMIN)
+    path('gate2/', views.checkin_portal, name='checkin_portal'),
 
     # Check-in
     path('checkin/<int:pk>/', views.checkin, name='checkin'),

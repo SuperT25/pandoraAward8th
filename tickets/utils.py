@@ -282,8 +282,8 @@ def generate_ticket_pdf(ticket) -> bytes:
     c.setFillColor(HDR_BG)
     c.rect(0, header_y, MAIN_W, HEADER_H, fill=1, stroke=0)
 
-    # Background image on header (pandorabg.jpeg)
-    bg_path = os.path.join(settings.BASE_DIR, 'static', 'img', 'pandorabg.jpeg')
+    # Background image on header (pa-logo.jpeg used as watermark bg)
+    bg_path = os.path.join(settings.BASE_DIR, 'static', 'img', 'pa-logo.jpeg')
     if os.path.exists(bg_path):
         c.saveState()
         c.setFillAlpha(0.3)
@@ -300,8 +300,8 @@ def generate_ticket_pdf(ticket) -> bytes:
     # ── Logo top-left ─────────────────────────────────────────────────
     # Try new PA logo first, fall back to old logo
     logo_paths = [
-        os.path.join(settings.BASE_DIR, 'static', 'img', 'pa-logo.png'),
         os.path.join(settings.BASE_DIR, 'static', 'img', 'pa-logo.jpeg'),
+        os.path.join(settings.BASE_DIR, 'static', 'img', 'pa-logo.png'),
         os.path.join(settings.BASE_DIR, 'static', 'img', 'pandora-logo.jpeg'),
     ]
     logo_path = None

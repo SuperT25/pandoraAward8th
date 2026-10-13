@@ -243,8 +243,10 @@ def generate_ticket_pdf(ticket) -> bytes:
     from reportlab.lib.utils import ImageReader
     from reportlab.pdfgen import canvas
 
-    PAGE_W, PAGE_H = landscape(A5)   # 210 x 148 mm
-    STUB_W = 58 * mm
+    # Custom size: 250 x 120 mm (wider, taller boarding-pass)
+    PAGE_W = 250 * mm
+    PAGE_H = 120 * mm
+    STUB_W = 65 * mm
     MAIN_W = PAGE_W - STUB_W
 
     theme = get_theme(ticket.ticket_type.name)
@@ -266,8 +268,8 @@ def generate_ticket_pdf(ticket) -> bytes:
     GREY      = colors.HexColor('#666666')
     LGREY     = colors.HexColor('#999999')
 
-    HEADER_H  = 58 * mm   # top header band height
-    FOOTER_H  = 10 * mm   # bottom footer band height
+    HEADER_H  = 65 * mm   # taller header band
+    FOOTER_H  = 12 * mm   # taller footer band
     GRID_H    = PAGE_H - HEADER_H - FOOTER_H  # middle grid area
 
     buf = io.BytesIO()
@@ -311,7 +313,7 @@ def generate_ticket_pdf(ticket) -> bytes:
             break
 
     if logo_path:
-        logo_sz = 18 * mm
+        logo_sz = 22 * mm
         c.drawImage(ImageReader(logo_path), 5 * mm, PAGE_H - 5 * mm - logo_sz,
                     logo_sz, logo_sz, preserveAspectRatio=True, mask='auto')
 
@@ -319,11 +321,11 @@ def generate_ticket_pdf(ticket) -> bytes:
     title_x = 27 * mm
     title_y = PAGE_H - 10 * mm
     c.setFillColor(WHITE)
-    c.setFont('Helvetica-Bold', 11)
+    c.setFont('Helvetica-Bold', 13)
     c.drawString(title_x, title_y, 'PANDORA AWARDS')
     c.setFillColor(ACCENT2)
-    c.setFont('Helvetica', 7)
-    c.drawString(title_x, title_y - 4.5 * mm, 'Events Made Memorable')
+    c.setFont('Helvetica', 8)
+    c.drawString(title_x, title_y - 5 * mm, 'Events Made Memorable')
 
     # Vertical separator
     c.setStrokeColor(ACCENT)
@@ -346,16 +348,16 @@ def generate_ticket_pdf(ticket) -> bytes:
                  ticket.event.event_date.strftime('%b %Y').upper())
 
     # ── "PANDORA AWARDS 8TH EDITION" big text ────────────────────────
-    big_y = PAGE_H - HEADER_H + 32 * mm
+    big_y = PAGE_H - HEADER_H + 38 * mm
     c.setFillColor(ACCENT)
-    c.setFont('Helvetica-Bold', 7)
-    c.drawString(5 * mm, big_y + 6 * mm, 'CELEBRATING EXCELLENCE')
+    c.setFont('Helvetica-Bold', 8)
+    c.drawString(5 * mm, big_y + 7 * mm, 'CELEBRATING EXCELLENCE')
     c.setFillColor(WHITE)
-    c.setFont('Helvetica-Bold', 20)
+    c.setFont('Helvetica-Bold', 24)
     c.drawString(5 * mm, big_y - 3 * mm, 'PANDORA AWARDS')
     c.setFillColor(ACCENT2)
-    c.setFont('Helvetica-Bold', 14)
-    c.drawString(5 * mm, big_y - 11 * mm, '8th Edition')
+    c.setFont('Helvetica-Bold', 16)
+    c.drawString(5 * mm, big_y - 13 * mm, '8th Edition')
 
     # Venue + time on header right side
     venue_x = 90 * mm
@@ -397,15 +399,15 @@ def generate_ticket_pdf(ticket) -> bytes:
     def grid_cell(x, y, w, h, label, value, value2=None):
         pad = 3 * mm
         c.setFillColor(GL)
-        c.setFont('Helvetica-Bold', 5.5)
-        c.drawString(x + pad, y + h - 5 * mm, label)
+        c.setFont('Helvetica-Bold', 6)
+        c.drawString(x + pad, y + h - 5.5 * mm, label)
         c.setFillColor(GV)
-        c.setFont('Helvetica-Bold', 9)
-        c.drawString(x + pad, y + h - 11 * mm, str(value)[:26])
+        c.setFont('Helvetica-Bold', 10)
+        c.drawString(x + pad, y + h - 12 * mm, str(value)[:26])
         if value2:
-            c.setFont('Helvetica', 7.5)
+            c.setFont('Helvetica', 8)
             c.setFillColor(GREY)
-            c.drawString(x + pad, y + h - 15.5 * mm, str(value2)[:28])
+            c.drawString(x + pad, y + h - 17 * mm, str(value2)[:28])
 
     row1_y = mid_grid_y
     row1_h = GRID_H / 2
@@ -479,25 +481,25 @@ def generate_ticket_pdf(ticket) -> bytes:
     c.roundRect(sx, 0, STUB_W, PAGE_H, 3 * mm, fill=1, stroke=0)
 
     # ── "E-TICKET" badge ─────────────────────────────────────────────
-    badge_stub_y = PAGE_H - 13 * mm
+    badge_stub_y = PAGE_H - 15 * mm
     badge_stub_w = STUB_W - 8 * mm
     badge_stub_x = sx + 4 * mm
     c.setFillColor(STUB_B)
-    c.roundRect(badge_stub_x, badge_stub_y, badge_stub_w, 9 * mm, 2 * mm, fill=1, stroke=0)
+    c.roundRect(badge_stub_x, badge_stub_y, badge_stub_w, 10 * mm, 2 * mm, fill=1, stroke=0)
     c.setFillColor(WHITE)
-    c.setFont('Helvetica-Bold', 10)
+    c.setFont('Helvetica-Bold', 11)
     c.drawCentredString(badge_stub_x + badge_stub_w / 2, badge_stub_y + 2.5 * mm, 'E-TICKET')
 
     # ── "Scan to Enter" ───────────────────────────────────────────────
     c.setFillColor(STUB_T)
-    c.setFont('Helvetica-Bold', 7.5)
-    c.drawCentredString(sx + STUB_W / 2, PAGE_H - 18 * mm, 'Scan to Enter')
+    c.setFont('Helvetica-Bold', 8)
+    c.drawCentredString(sx + STUB_W / 2, PAGE_H - 20 * mm, 'Scan to Enter')
 
     # ── QR Code ───────────────────────────────────────────────────────
-    qr_bytes = generate_qr_image(ticket.qr_token, size=6)
-    qr_sz = 36 * mm
+    qr_bytes = generate_qr_image(ticket.qr_token, size=7)
+    qr_sz = 42 * mm
     qr_x = sx + (STUB_W - qr_sz) / 2
-    qr_y = PAGE_H / 2 - qr_sz / 2 + 4 * mm
+    qr_y = PAGE_H / 2 - qr_sz / 2 + 6 * mm
 
     c.setFillColor(WHITE)
     c.roundRect(qr_x - 1.5*mm, qr_y - 1.5*mm, qr_sz + 3*mm, qr_sz + 3*mm,

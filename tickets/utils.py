@@ -58,7 +58,7 @@ def save_qr_to_file(ticket) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Photo loader
+# Photo loader — works with Cloudinary and local
 # ---------------------------------------------------------------------------
 
 def _get_photo_reader(photo_field):
@@ -78,114 +78,121 @@ def _get_photo_reader(photo_field):
 
 
 # ---------------------------------------------------------------------------
-# Ticket colour themes — matching the reference designs exactly
+# Ticket colour themes
 # ---------------------------------------------------------------------------
 
 TICKET_THEMES = {
     'REGULAR': {
-        'bg':          '#1a1008',   # Very dark brown-black
-        'accent':      '#c9960c',   # Gold
+        'header_bg':   '#0a0a2e',   # Deep dark blue
+        'header_acc':  '#c9960c',   # Gold
+        'accent':      '#c9960c',
         'accent2':     '#e8c84a',
-        'box_bg':      '#2a1e0a',
-        'box_border':  '#c9960c',
-        'stub_bg':     '#1a1008',
-        'stub_accent': '#c9960c',
-        'text_main':   '#ffffff',
-        'text_sub':    '#c9960c',
-        'text_body':   '#e0d0b0',
+        'grid_bg':     '#ffffff',
+        'grid_label':  '#c9960c',
+        'grid_value':  '#111111',
+        'stub_bg':     '#f0f4ff',
+        'stub_badge':  '#0a0a2e',
+        'stub_text':   '#0a0a2e',
+        'footer_bg':   '#0a0a2e',
+        'footer_text': '#c9960c',
         'price':       '₦30,000',
         'label':       'REGULAR',
-        'watermark':   '#c9960c',
     },
     'VIP': {
-        'bg':          '#0a1428',   # Dark navy blue
-        'accent':      '#4ab0ff',   # Blue
-        'accent2':     '#80ccff',
-        'box_bg':      '#0f1e3a',
-        'box_border':  '#4ab0ff',
-        'stub_bg':     '#0a1428',
-        'stub_accent': '#4ab0ff',
-        'text_main':   '#ffffff',
-        'text_sub':    '#4ab0ff',
-        'text_body':   '#b0d0f0',
-        'price':       '₦100,000',
-        'label':       'VIP',
-        'watermark':   '#4ab0ff',
-    },
-    'SPECIAL GUEST SEAT': {
-        'bg':          '#2a0a1a',   # Dark maroon
-        'accent':      '#e080a0',   # Pink
-        'accent2':     '#f0b0c0',
-        'box_bg':      '#3a1028',
-        'box_border':  '#e080a0',
-        'stub_bg':     '#2a0a1a',
-        'stub_accent': '#e080a0',
-        'text_main':   '#ffffff',
-        'text_sub':    '#e080a0',
-        'text_body':   '#f0c0d0',
-        'price':       '₦300,000',
-        'label':       'SPECIAL GUEST SEAT',
-        'watermark':   '#e080a0',
-    },
-    'SPECIAL GUEST': {
-        'bg':          '#2a0a1a',
-        'accent':      '#e080a0',
-        'accent2':     '#f0b0c0',
-        'box_bg':      '#3a1028',
-        'box_border':  '#e080a0',
-        'stub_bg':     '#2a0a1a',
-        'stub_accent': '#e080a0',
-        'text_main':   '#ffffff',
-        'text_sub':    '#e080a0',
-        'text_body':   '#f0c0d0',
-        'price':       '₦300,000',
-        'label':       'SPECIAL GUEST',
-        'watermark':   '#e080a0',
-    },
-    'GOLD TABLE': {
-        'bg':          '#1e1004',   # Rich dark brown
-        'accent':      '#c9960c',   # Gold
-        'accent2':     '#e8c84a',
-        'box_bg':      '#2e1a08',
-        'box_border':  '#c9960c',
-        'stub_bg':     '#1e1004',
-        'stub_accent': '#c9960c',
-        'text_main':   '#ffffff',
-        'text_sub':    '#c9960c',
-        'text_body':   '#e0d0b0',
-        'price':       '₦800,000',
-        'label':       'GOLD TABLE',
-        'watermark':   '#c9960c',
-    },
-    'MEDIA': {
-        'bg':          '#0a1428',
+        'header_bg':   '#001a3a',
+        'header_acc':  '#4ab0ff',
         'accent':      '#4ab0ff',
         'accent2':     '#80ccff',
-        'box_bg':      '#0f1e3a',
-        'box_border':  '#4ab0ff',
-        'stub_bg':     '#0a1428',
-        'stub_accent': '#4ab0ff',
-        'text_main':   '#ffffff',
-        'text_sub':    '#4ab0ff',
-        'text_body':   '#b0d0f0',
+        'grid_bg':     '#ffffff',
+        'grid_label':  '#0050aa',
+        'grid_value':  '#111111',
+        'stub_bg':     '#f0f8ff',
+        'stub_badge':  '#001a3a',
+        'stub_text':   '#001a3a',
+        'footer_bg':   '#001a3a',
+        'footer_text': '#4ab0ff',
+        'price':       '₦100,000',
+        'label':       'VIP',
+    },
+    'SPECIAL GUEST SEAT': {
+        'header_bg':   '#1a0028',
+        'header_acc':  '#d080ff',
+        'accent':      '#d080ff',
+        'accent2':     '#e8b0ff',
+        'grid_bg':     '#ffffff',
+        'grid_label':  '#8800cc',
+        'grid_value':  '#111111',
+        'stub_bg':     '#faf0ff',
+        'stub_badge':  '#1a0028',
+        'stub_text':   '#1a0028',
+        'footer_bg':   '#1a0028',
+        'footer_text': '#d080ff',
+        'price':       '₦300,000',
+        'label':       'SPECIAL GUEST SEAT',
+    },
+    'SPECIAL GUEST': {
+        'header_bg':   '#1a0028',
+        'header_acc':  '#d080ff',
+        'accent':      '#d080ff',
+        'accent2':     '#e8b0ff',
+        'grid_bg':     '#ffffff',
+        'grid_label':  '#8800cc',
+        'grid_value':  '#111111',
+        'stub_bg':     '#faf0ff',
+        'stub_badge':  '#1a0028',
+        'stub_text':   '#1a0028',
+        'footer_bg':   '#1a0028',
+        'footer_text': '#d080ff',
+        'price':       '₦300,000',
+        'label':       'SPECIAL GUEST',
+    },
+    'GOLD TABLE': {
+        'header_bg':   '#1a0e00',
+        'header_acc':  '#c9960c',
+        'accent':      '#c9960c',
+        'accent2':     '#e8c84a',
+        'grid_bg':     '#ffffff',
+        'grid_label':  '#8a6400',
+        'grid_value':  '#111111',
+        'stub_bg':     '#fffaf0',
+        'stub_badge':  '#1a0e00',
+        'stub_text':   '#1a0e00',
+        'footer_bg':   '#1a0e00',
+        'footer_text': '#c9960c',
+        'price':       '₦800,000',
+        'label':       'GOLD TABLE',
+    },
+    'MEDIA': {
+        'header_bg':   '#001428',
+        'header_acc':  '#00aaff',
+        'accent':      '#00aaff',
+        'accent2':     '#80d4ff',
+        'grid_bg':     '#ffffff',
+        'grid_label':  '#006699',
+        'grid_value':  '#111111',
+        'stub_bg':     '#f0faff',
+        'stub_badge':  '#001428',
+        'stub_text':   '#001428',
+        'footer_bg':   '#001428',
+        'footer_text': '#00aaff',
         'price':       'PRESS',
         'label':       'MEDIA',
-        'watermark':   '#4ab0ff',
     },
     'STAFF': {
-        'bg':          '#111111',
+        'header_bg':   '#111111',
+        'header_acc':  '#888888',
         'accent':      '#888888',
         'accent2':     '#bbbbbb',
-        'box_bg':      '#222222',
-        'box_border':  '#888888',
-        'stub_bg':     '#111111',
-        'stub_accent': '#888888',
-        'text_main':   '#ffffff',
-        'text_sub':    '#aaaaaa',
-        'text_body':   '#cccccc',
+        'grid_bg':     '#ffffff',
+        'grid_label':  '#555555',
+        'grid_value':  '#111111',
+        'stub_bg':     '#f5f5f5',
+        'stub_badge':  '#111111',
+        'stub_text':   '#111111',
+        'footer_bg':   '#111111',
+        'footer_text': '#888888',
         'price':       'CREW',
         'label':       'STAFF',
-        'watermark':   '#888888',
     },
 }
 
@@ -197,253 +204,338 @@ def get_theme(name: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# PDF Ticket — matches reference designs exactly
-# Size: 210 x 99 mm  (landscape boarding-pass)
-# Layout: Left main panel (~155mm) | Perforated divider | Right stub (~55mm)
+# Barcode (Code128 style — simple lines)
+# ---------------------------------------------------------------------------
+
+def _draw_barcode(c, x, y, width, height, text):
+    """Draw a simple visual barcode (decorative) under the ticket number."""
+    from reportlab.lib import colors as _colors
+    import hashlib
+    # Generate deterministic bar pattern from ticket number
+    h = hashlib.md5(text.encode()).hexdigest()
+    bars = []
+    for ch in h:
+        v = int(ch, 16)
+        bars.append(v)
+
+    bar_count = 60
+    bar_w = width / (bar_count * 1.5)
+    cx = x
+    for i in range(bar_count):
+        v = bars[i % len(bars)]
+        bw = bar_w * (1 + (v % 3) * 0.4)
+        if v % 2 == 0:
+            c.setFillColor(_colors.black)
+            c.rect(cx, y, bw, height, fill=1, stroke=0)
+        cx += bw + bar_w * 0.5
+
+
+# ---------------------------------------------------------------------------
+# PDF Ticket — matches EventHub-style reference with Pandora branding
+# Size: A5 landscape = 210 x 148 mm
+# Layout: Main panel (left ~155mm) | Right stub (~55mm)
 # ---------------------------------------------------------------------------
 
 def generate_ticket_pdf(ticket) -> bytes:
+    from reportlab.lib.pagesizes import A5, landscape
     from reportlab.lib.units import mm
     from reportlab.lib import colors
     from reportlab.lib.utils import ImageReader
     from reportlab.pdfgen import canvas
 
-    W = 210 * mm
-    H = 99  * mm
-    STUB = 55 * mm   # right stub width
-    MAIN = W - STUB  # left main panel width
+    PAGE_W, PAGE_H = landscape(A5)   # 210 x 148 mm
+    STUB_W = 58 * mm
+    MAIN_W = PAGE_W - STUB_W
 
     theme = get_theme(ticket.ticket_type.name)
 
-    BG        = colors.HexColor(theme['bg'])
+    HDR_BG    = colors.HexColor(theme['header_bg'])
+    HDR_ACC   = colors.HexColor(theme['header_acc'])
     ACCENT    = colors.HexColor(theme['accent'])
     ACCENT2   = colors.HexColor(theme['accent2'])
-    BOX_BG    = colors.HexColor(theme['box_bg'])
-    BOX_BDR   = colors.HexColor(theme['box_border'])
+    GRID_BG   = colors.HexColor(theme['grid_bg'])
+    GL        = colors.HexColor(theme['grid_label'])
+    GV        = colors.HexColor(theme['grid_value'])
     STUB_BG   = colors.HexColor(theme['stub_bg'])
-    STUB_ACC  = colors.HexColor(theme['stub_accent'])
-    TEXT_MAIN = colors.HexColor(theme['text_main'])
-    TEXT_SUB  = colors.HexColor(theme['text_sub'])
-    TEXT_BODY = colors.HexColor(theme['text_body'])
-    WM_COLOR  = colors.HexColor(theme['watermark'])
+    STUB_B    = colors.HexColor(theme['stub_badge'])
+    STUB_T    = colors.HexColor(theme['stub_text'])
+    FTR_BG    = colors.HexColor(theme['footer_bg'])
+    FTR_TXT   = colors.HexColor(theme['footer_text'])
     WHITE     = colors.white
+    BLACK     = colors.black
+    GREY      = colors.HexColor('#666666')
+    LGREY     = colors.HexColor('#999999')
+
+    HEADER_H  = 58 * mm   # top header band height
+    FOOTER_H  = 10 * mm   # bottom footer band height
+    GRID_H    = PAGE_H - HEADER_H - FOOTER_H  # middle grid area
 
     buf = io.BytesIO()
-    c = canvas.Canvas(buf, pagesize=(W, H))
+    c = canvas.Canvas(buf, pagesize=(PAGE_W, PAGE_H))
 
-    # ════════════════════════════════════════════════════════════════
-    # MAIN PANEL (left)
-    # ════════════════════════════════════════════════════════════════
-    c.setFillColor(BG)
-    c.roundRect(0, 0, MAIN, H, 4 * mm, fill=1, stroke=0)
+    # ════════════════════════════════════════════════════════════════════
+    # MAIN PANEL
+    # ════════════════════════════════════════════════════════════════════
 
-    # Top accent bar
-    c.setFillColor(ACCENT)
-    c.rect(0, H - 2.5 * mm, MAIN, 2.5 * mm, fill=1, stroke=0)
+    # ── HEADER BAND ──────────────────────────────────────────────────────
+    header_y = PAGE_H - HEADER_H
+    c.setFillColor(HDR_BG)
+    c.rect(0, header_y, MAIN_W, HEADER_H, fill=1, stroke=0)
 
-    # Bottom accent bar
-    c.rect(0, 0, MAIN, 2.5 * mm, fill=1, stroke=0)
+    # Background image on header (pandorabg.jpeg)
+    bg_path = os.path.join(settings.BASE_DIR, 'static', 'img', 'pandorabg.jpeg')
+    if os.path.exists(bg_path):
+        c.saveState()
+        c.setFillAlpha(0.3)
+        c.drawImage(ImageReader(bg_path), 0, header_y, MAIN_W, HEADER_H,
+                    preserveAspectRatio=False, mask='auto')
+        c.restoreState()
+        # Re-draw dark overlay
+        c.setFillColor(HDR_BG)
+        c.saveState()
+        c.setFillAlpha(0.55)
+        c.rect(0, header_y, MAIN_W, HEADER_H, fill=1, stroke=0)
+        c.restoreState()
 
-    # Bottom-right triangle accent (like in reference)
-    p = c.beginPath()
-    p.moveTo(MAIN - 18 * mm, 0)
-    p.lineTo(MAIN, 0)
-    p.lineTo(MAIN, 18 * mm)
-    p.close()
-    c.setFillColor(ACCENT)
-    c.drawPath(p, fill=1, stroke=0)
+    # ── Logo top-left ─────────────────────────────────────────────────
+    # Try new PA logo first, fall back to old logo
+    logo_paths = [
+        os.path.join(settings.BASE_DIR, 'static', 'img', 'pa-logo.png'),
+        os.path.join(settings.BASE_DIR, 'static', 'img', 'pa-logo.jpeg'),
+        os.path.join(settings.BASE_DIR, 'static', 'img', 'pandora-logo.jpeg'),
+    ]
+    logo_path = None
+    for p in logo_paths:
+        if os.path.exists(p):
+            logo_path = p
+            break
 
-    # ── Logo + Title ─────────────────────────────────────────────────
-    logo_path = os.path.join(settings.BASE_DIR, 'static', 'img', 'pandora-logo.jpeg')
-    logo_size = 16 * mm
-    logo_x, logo_y = 5 * mm, H - 2.5 * mm - logo_size - 2 * mm
+    if logo_path:
+        logo_sz = 18 * mm
+        c.drawImage(ImageReader(logo_path), 5 * mm, PAGE_H - 5 * mm - logo_sz,
+                    logo_sz, logo_sz, preserveAspectRatio=True, mask='auto')
 
-    if os.path.exists(logo_path):
-        c.drawImage(ImageReader(logo_path), logo_x, logo_y, logo_size, logo_size,
-                    preserveAspectRatio=True, mask='auto')
-
-    title_x = logo_x + logo_size + 3 * mm
-    title_y = H - 2.5 * mm - 9 * mm
-    c.setFillColor(TEXT_MAIN)
-    c.setFont('Helvetica-Bold', 16)
-    c.drawString(title_x, title_y, 'PANDORA AWARDS')
-
-    c.setFillColor(TEXT_SUB)
-    c.setFont('Helvetica', 7.5)
-    c.drawString(title_x, title_y - 5.5 * mm, '8TH EDITION  •  LIVE IN ABUJA')
-
-    # Accent divider under header
-    c.setStrokeColor(ACCENT)
-    c.setLineWidth(0.5)
-    c.line(5 * mm, H - 2.5 * mm - 22 * mm, MAIN - 5 * mm, H - 2.5 * mm - 22 * mm)
-
-    # ── Ticket Type + Price box ──────────────────────────────────────
-    box_y = H - 2.5 * mm - 36 * mm
-    box_h = 12 * mm
-    box_x = 5 * mm
-    box_w = MAIN - 10 * mm
-
-    c.setFillColor(BOX_BG)
-    c.roundRect(box_x, box_y, box_w, box_h, 2 * mm, fill=1, stroke=0)
-    c.setStrokeColor(BOX_BDR)
-    c.setLineWidth(0.8)
-    c.roundRect(box_x, box_y, box_w, box_h, 2 * mm, fill=0, stroke=1)
-
-    # TICKET TYPE label + value
-    c.setFillColor(TEXT_SUB)
-    c.setFont('Helvetica', 5.5)
-    c.drawString(box_x + 4 * mm, box_y + box_h - 4 * mm, 'TICKET TYPE')
-
-    c.setFillColor(TEXT_MAIN)
-    c.setFont('Helvetica-Bold', 10)
-    c.drawString(box_x + 4 * mm, box_y + 2.5 * mm, theme['label'])
-
-    # Vertical divider in box
-    mid_box = box_x + box_w * 0.5
-    c.setStrokeColor(BOX_BDR)
-    c.setLineWidth(0.4)
-    c.line(mid_box, box_y + 2 * mm, mid_box, box_y + box_h - 2 * mm)
-
-    # PRICE label + value
-    c.setFillColor(TEXT_SUB)
-    c.setFont('Helvetica', 5.5)
-    c.drawString(mid_box + 4 * mm, box_y + box_h - 4 * mm, 'PRICE')
-
-    c.setFillColor(ACCENT)
+    # ── "PANDORA AWARDS" title ────────────────────────────────────────
+    title_x = 27 * mm
+    title_y = PAGE_H - 10 * mm
+    c.setFillColor(WHITE)
     c.setFont('Helvetica-Bold', 11)
-    c.drawString(mid_box + 4 * mm, box_y + 2.5 * mm, theme['price'])
+    c.drawString(title_x, title_y, 'PANDORA AWARDS')
+    c.setFillColor(ACCENT2)
+    c.setFont('Helvetica', 7)
+    c.drawString(title_x, title_y - 4.5 * mm, 'Events Made Memorable')
 
-    # ── Date / Time / Venue ──────────────────────────────────────────
-    info_y = box_y - 6 * mm
+    # Vertical separator
+    c.setStrokeColor(ACCENT)
+    c.setLineWidth(1)
+    c.line(title_x + 62 * mm, PAGE_H - 5 * mm, title_x + 62 * mm, PAGE_H - 22 * mm)
 
-    c.setFillColor(TEXT_MAIN)
+    # ── Date block (top-right of header) ─────────────────────────────
+    date_x = title_x + 66 * mm
+    c.setFillColor(LGREY)
+    c.setFont('Helvetica', 7)
+    c.drawString(date_x, PAGE_H - 10 * mm,
+                 ticket.event.event_date.strftime('%a').upper())
+    c.setFillColor(WHITE)
+    c.setFont('Helvetica-Bold', 22)
+    c.drawString(date_x, PAGE_H - 20 * mm,
+                 ticket.event.event_date.strftime('%d'))
+    c.setFillColor(ACCENT2)
     c.setFont('Helvetica-Bold', 9)
-    date_str = ticket.event.event_date.strftime('SUNDAY, %d %B %Y').upper()
-    c.drawString(5 * mm, info_y, date_str)
+    c.drawString(date_x, PAGE_H - 25 * mm,
+                 ticket.event.event_date.strftime('%b %Y').upper())
 
-    c.setFillColor(TEXT_SUB)
-    c.setFont('Helvetica-Bold', 7.5)
-    c.drawString(5 * mm, info_y - 5.5 * mm, 'RED CARPET 4PM  •  MAIN EVENT 6PM')
+    # ── "PANDORA AWARDS 8TH EDITION" big text ────────────────────────
+    big_y = PAGE_H - HEADER_H + 32 * mm
+    c.setFillColor(ACCENT)
+    c.setFont('Helvetica-Bold', 7)
+    c.drawString(5 * mm, big_y + 6 * mm, 'CELEBRATING EXCELLENCE')
+    c.setFillColor(WHITE)
+    c.setFont('Helvetica-Bold', 20)
+    c.drawString(5 * mm, big_y - 3 * mm, 'PANDORA AWARDS')
+    c.setFillColor(ACCENT2)
+    c.setFont('Helvetica-Bold', 14)
+    c.drawString(5 * mm, big_y - 11 * mm, '8th Edition')
 
-    c.setFillColor(TEXT_MAIN)
-    c.setFont('Helvetica-Bold', 7.5)
-    c.drawString(5 * mm, info_y - 11 * mm, 'A CLASS EVENT CENTER  •  SAPPHIRE HALL')
-
-    c.setFillColor(TEXT_BODY)
+    # Venue + time on header right side
+    venue_x = 90 * mm
+    venue_y = big_y - 3 * mm
+    c.setFillColor(LGREY)
     c.setFont('Helvetica', 6.5)
-    c.drawString(5 * mm, info_y - 16 * mm, 'Maitama, Abuja FCT, Nigeria')
+    c.drawString(venue_x, venue_y + 2 * mm, '📍  A Class Event Center, Sapphire Hall')
+    c.drawString(venue_x, venue_y - 2.5 * mm, '     Maitama, Abuja FCT, Nigeria')
+    c.drawString(venue_x, venue_y - 7 * mm, '🕐  Red Carpet 4PM  •  Main Event 6PM')
 
-    # ── Guest Name field ─────────────────────────────────────────────
-    name_y = info_y - 27 * mm
-    name_box_w = MAIN - 10 * mm
+    # Ticket type badge on header
+    badge_y = PAGE_H - HEADER_H + 6 * mm
+    badge_w = 40 * mm
+    c.setFillColor(ACCENT)
+    c.roundRect(5 * mm, badge_y, badge_w, 6 * mm, 1.5 * mm, fill=1, stroke=0)
+    c.setFillColor(HDR_BG)
+    c.setFont('Helvetica-Bold', 7.5)
+    c.drawCentredString(5 * mm + badge_w / 2, badge_y + 1.8 * mm,
+                        theme['label'] + '  •  ' + theme['price'])
 
-    c.setFillColor(BOX_BG)
-    c.roundRect(5 * mm, name_y - 1 * mm, name_box_w, 10 * mm, 1.5 * mm, fill=1, stroke=0)
-    c.setStrokeColor(BOX_BDR)
-    c.setLineWidth(0.5)
-    c.roundRect(5 * mm, name_y - 1 * mm, name_box_w, 10 * mm, 1.5 * mm, fill=0, stroke=1)
+    # ── GRID AREA (white) ─────────────────────────────────────────────
+    grid_y = FOOTER_H
+    c.setFillColor(GRID_BG)
+    c.rect(0, grid_y, MAIN_W, GRID_H, fill=1, stroke=0)
 
-    c.setFillColor(TEXT_SUB)
-    c.setFont('Helvetica-Bold', 5.5)
-    c.drawString(8 * mm, name_y + 7 * mm, 'NAME')
-
-    # Guest name value
-    c.setFillColor(TEXT_MAIN)
-    c.setFont('Helvetica-Bold', 9)
-    gname = ticket.guest.full_name.upper()
-    c.drawString(8 * mm, name_y + 1.5 * mm, gname[:35])
-
-    # Underline under name
-    c.setStrokeColor(ACCENT)
+    # Grid lines
+    c.setStrokeColor(colors.HexColor('#dddddd'))
     c.setLineWidth(0.4)
-    c.line(8 * mm, name_y + 1 * mm, 5 * mm + name_box_w - 3 * mm, name_y + 1 * mm)
 
-    # ── Watermark "PANDORA AWARD" text ───────────────────────────────
-    c.saveState()
-    c.setFillColor(WM_COLOR)
-    c.setFillAlpha(0.06)
-    c.setFont('Helvetica-Bold', 28)
-    c.translate(MAIN / 2, H / 2 - 5 * mm)
-    c.rotate(0)
-    c.drawCentredString(0, 0, 'PANDORA AWARD')
-    c.restoreState()
+    # Vertical dividers for grid
+    col_w = MAIN_W / 3
+    for i in [1, 2]:
+        c.line(col_w * i, grid_y + 2 * mm, col_w * i, grid_y + GRID_H - 2 * mm)
 
-    # ── ONE TICKET • ONE ENTRY ───────────────────────────────────────
-    c.setFillColor(TEXT_SUB)
-    c.setFont('Helvetica-Bold', 6)
-    c.drawString(5 * mm, 4 * mm, 'ONE TICKET  •  ONE ENTRY')
+    # Horizontal divider
+    mid_grid_y = grid_y + GRID_H / 2
+    c.line(2 * mm, mid_grid_y, MAIN_W - 2 * mm, mid_grid_y)
 
-    # ════════════════════════════════════════════════════════════════
+    def grid_cell(x, y, w, h, label, value, value2=None):
+        pad = 3 * mm
+        c.setFillColor(GL)
+        c.setFont('Helvetica-Bold', 5.5)
+        c.drawString(x + pad, y + h - 5 * mm, label)
+        c.setFillColor(GV)
+        c.setFont('Helvetica-Bold', 9)
+        c.drawString(x + pad, y + h - 11 * mm, str(value)[:26])
+        if value2:
+            c.setFont('Helvetica', 7.5)
+            c.setFillColor(GREY)
+            c.drawString(x + pad, y + h - 15.5 * mm, str(value2)[:28])
+
+    row1_y = mid_grid_y
+    row1_h = GRID_H / 2
+    row2_y = grid_y
+    row2_h = GRID_H / 2
+
+    # Row 1: Ticket Holder | Ticket Type | Price
+    grid_cell(0,       row1_y, col_w,   row1_h, 'TICKET HOLDER', ticket.guest.full_name)
+    grid_cell(col_w,   row1_y, col_w,   row1_h, 'TICKET TYPE',   ticket.ticket_type.name)
+    grid_cell(col_w*2, row1_y, col_w,   row1_h, 'PRICE',         theme['price'])
+
+    # Row 2: Event | Venue | Date & Time
+    grid_cell(0,       row2_y, col_w,   row2_h, 'EVENT',
+              'Pandora Awards 8th Edition')
+    grid_cell(col_w,   row2_y, col_w,   row2_h, 'VENUE',
+              'A Class Event Center', 'Sapphire Hall, Maitama, Abuja')
+    grid_cell(col_w*2, row2_y, col_w,   row2_h, 'DATE & TIME',
+              ticket.event.event_date.strftime('%a, %d %b %Y'),
+              'Red Carpet 4PM  •  Main Event 6PM')
+
+    # ── Barcode + ticket number ───────────────────────────────────────
+    bar_y = grid_y + 1 * mm
+    bar_h = 6 * mm
+    bar_w = MAIN_W * 0.55
+    bar_x = 5 * mm
+    _draw_barcode(c, bar_x, bar_y, bar_w, bar_h, ticket.ticket_number)
+    c.setFillColor(BLACK)
+    c.setFont('Helvetica', 7)
+    c.drawString(bar_x, bar_y - 3.5 * mm, ticket.ticket_number)
+
+    # ── Phone + Email row ─────────────────────────────────────────────
+    phone_x = bar_x + bar_w + 5 * mm
+    c.setFillColor(GL)
+    c.setFont('Helvetica-Bold', 5.5)
+    c.drawString(phone_x, bar_y + bar_h, 'PHONE')
+    c.setFillColor(GV)
+    c.setFont('Helvetica', 7.5)
+    c.drawString(phone_x, bar_y + bar_h - 4.5 * mm, ticket.guest.phone_number)
+
+    # ── FOOTER BAND ───────────────────────────────────────────────────
+    c.setFillColor(FTR_BG)
+    c.rect(0, 0, MAIN_W, FOOTER_H, fill=1, stroke=0)
+
+    c.setFillColor(FTR_TXT)
+    c.setFont('Helvetica-Bold', 7)
+    c.drawCentredString(MAIN_W / 2, 3.5 * mm,
+                        'THANK YOU FOR BEING PART OF PANDORA AWARDS 8TH EDITION')
+
+    # ════════════════════════════════════════════════════════════════════
     # PERFORATED DIVIDER
-    # ════════════════════════════════════════════════════════════════
+    # ════════════════════════════════════════════════════════════════════
+    div_x = MAIN_W
     c.saveState()
-    c.setStrokeColor(ACCENT)
+    c.setStrokeColor(GREY)
     c.setLineWidth(0.6)
     c.setDash(3, 4)
-    c.line(MAIN, 4 * mm, MAIN, H - 4 * mm)
+    c.line(div_x, 4 * mm, div_x, PAGE_H - 4 * mm)
     c.restoreState()
 
-    # Semicircle notches
-    c.setFillColor(BG)
-    c.circle(MAIN, H - 4 * mm, 3 * mm, fill=1, stroke=0)
-    c.circle(MAIN, 4 * mm, 3 * mm, fill=1, stroke=0)
+    # Notch circles
+    c.setFillColor(colors.HexColor('#f0f0f0'))
+    c.circle(div_x, PAGE_H - 4 * mm, 3 * mm, fill=1, stroke=0)
+    c.circle(div_x, 4 * mm, 3 * mm, fill=1, stroke=0)
 
-    # ════════════════════════════════════════════════════════════════
+    # ════════════════════════════════════════════════════════════════════
     # RIGHT STUB
-    # ════════════════════════════════════════════════════════════════
-    stub_x = MAIN
+    # ════════════════════════════════════════════════════════════════════
+    sx = MAIN_W
+
     c.setFillColor(STUB_BG)
-    c.roundRect(stub_x, 0, STUB, H, 4 * mm, fill=1, stroke=0)
+    c.roundRect(sx, 0, STUB_W, PAGE_H, 3 * mm, fill=1, stroke=0)
 
-    # Stub top accent bar
-    c.setFillColor(STUB_ACC)
-    c.rect(stub_x, H - 2.5 * mm, STUB, 2.5 * mm, fill=1, stroke=0)
-
-    # Stub bottom accent bar
-    c.rect(stub_x, 0, STUB, 2.5 * mm, fill=1, stroke=0)
-
-    # Bottom-left triangle on stub
-    p2 = c.beginPath()
-    p2.moveTo(stub_x, 0)
-    p2.lineTo(stub_x + 16 * mm, 0)
-    p2.lineTo(stub_x, 16 * mm)
-    p2.close()
-    c.setFillColor(STUB_ACC)
-    c.drawPath(p2, fill=1, stroke=0)
-
-    # ── QR Code ──────────────────────────────────────────────────────
-    qr_bytes = generate_qr_image(ticket.qr_token, size=6)
-    qr_size = 34 * mm
-    qr_x = stub_x + (STUB - qr_size) / 2
-    qr_y = H / 2 - qr_size / 2 + 4 * mm
-
-    # White background for QR
+    # ── "E-TICKET" badge ─────────────────────────────────────────────
+    badge_stub_y = PAGE_H - 13 * mm
+    badge_stub_w = STUB_W - 8 * mm
+    badge_stub_x = sx + 4 * mm
+    c.setFillColor(STUB_B)
+    c.roundRect(badge_stub_x, badge_stub_y, badge_stub_w, 9 * mm, 2 * mm, fill=1, stroke=0)
     c.setFillColor(WHITE)
-    c.roundRect(qr_x - 2 * mm, qr_y - 2 * mm, qr_size + 4 * mm, qr_size + 4 * mm,
-                1.5 * mm, fill=1, stroke=0)
-    c.setStrokeColor(STUB_ACC)
+    c.setFont('Helvetica-Bold', 10)
+    c.drawCentredString(badge_stub_x + badge_stub_w / 2, badge_stub_y + 2.5 * mm, 'E-TICKET')
+
+    # ── "Scan to Enter" ───────────────────────────────────────────────
+    c.setFillColor(STUB_T)
+    c.setFont('Helvetica-Bold', 7.5)
+    c.drawCentredString(sx + STUB_W / 2, PAGE_H - 18 * mm, 'Scan to Enter')
+
+    # ── QR Code ───────────────────────────────────────────────────────
+    qr_bytes = generate_qr_image(ticket.qr_token, size=6)
+    qr_sz = 36 * mm
+    qr_x = sx + (STUB_W - qr_sz) / 2
+    qr_y = PAGE_H / 2 - qr_sz / 2 + 4 * mm
+
+    c.setFillColor(WHITE)
+    c.roundRect(qr_x - 1.5*mm, qr_y - 1.5*mm, qr_sz + 3*mm, qr_sz + 3*mm,
+                2*mm, fill=1, stroke=0)
+    c.setStrokeColor(ACCENT)
     c.setLineWidth(1)
-    c.roundRect(qr_x - 2 * mm, qr_y - 2 * mm, qr_size + 4 * mm, qr_size + 4 * mm,
-                1.5 * mm, fill=0, stroke=1)
-    c.drawImage(ImageReader(io.BytesIO(qr_bytes)), qr_x, qr_y, qr_size, qr_size)
+    c.roundRect(qr_x - 1.5*mm, qr_y - 1.5*mm, qr_sz + 3*mm, qr_sz + 3*mm,
+                2*mm, fill=0, stroke=1)
+    c.drawImage(ImageReader(io.BytesIO(qr_bytes)), qr_x, qr_y, qr_sz, qr_sz)
 
-    # ── SCAN AT ENTRY ────────────────────────────────────────────────
-    scan_y = qr_y - 5 * mm
-    c.setFillColor(TEXT_MAIN)
+    # ── Ticket ID ─────────────────────────────────────────────────────
+    c.setFillColor(STUB_T)
+    c.setFont('Helvetica', 6.5)
+    c.drawCentredString(sx + STUB_W / 2, qr_y - 5 * mm, 'Ticket ID')
+    c.setFont('Helvetica-Bold', 8.5)
+    c.drawCentredString(sx + STUB_W / 2, qr_y - 9.5 * mm, ticket.ticket_number)
+
+    # ── IMPORTANT instructions ────────────────────────────────────────
+    imp_y = qr_y - 15 * mm
+    c.setFillColor(ACCENT)
     c.setFont('Helvetica-Bold', 7)
-    c.drawString(stub_x + 3 * mm, scan_y, 'SCAN AT ENTRY')
+    c.drawString(sx + 4 * mm, imp_y, 'IMPORTANT')
 
-    # Ticket number
-    c.setFillColor(TEXT_SUB)
+    instructions = [
+        '1. Present QR code at entrance.',
+        '2. Valid for one entry only.',
+        '3. Keep this ticket safe.',
+        '4. Non-transferable.',
+    ]
+    c.setFillColor(STUB_T)
     c.setFont('Helvetica', 6)
-    c.drawString(stub_x + 3 * mm, scan_y - 4.5 * mm, ticket.ticket_number)
+    for i, line in enumerate(instructions):
+        c.drawString(sx + 4 * mm, imp_y - (i + 1) * 5 * mm, line)
 
-    # KEEP THIS TICKET
-    keep_y = scan_y - 11 * mm
-    c.setFillColor(TEXT_MAIN)
-    c.setFont('Helvetica-Bold', 6.5)
-    c.drawString(stub_x + 3 * mm, keep_y, 'KEEP THIS')
-    c.drawString(stub_x + 3 * mm, keep_y - 4.5 * mm, 'TICKET')
+    # ── "See You There!" footer ───────────────────────────────────────
+    c.setFillColor(ACCENT)
+    c.setFont('Helvetica-Oblique', 7.5)
+    c.drawCentredString(sx + STUB_W / 2, 5 * mm, '✨ See You There!')
 
     c.save()
     return buf.getvalue()
@@ -451,8 +543,8 @@ def generate_ticket_pdf(ticket) -> bytes:
 
 def _draw_photo_placeholder(c, x, y, w, h):
     from reportlab.lib import colors as _colors
-    c.setFillColor(_colors.HexColor('#1a1008'))
+    c.setFillColor(_colors.HexColor('#eeeeee'))
     c.rect(x, y, w, h, fill=1, stroke=0)
-    c.setFillColor(_colors.HexColor('#c9960c'))
+    c.setFillColor(_colors.HexColor('#999999'))
     c.setFont('Helvetica', 7)
     c.drawCentredString(x + w / 2, y + h / 2, 'PHOTO')

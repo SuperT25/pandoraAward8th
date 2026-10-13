@@ -856,9 +856,9 @@ def reports_export_csv(request):
         'guest', 'event', 'ticket_type', 'checked_in_by'
     ).order_by('-created_at')
 
-    source_filter = request.GET.get('source', '')
-    status_filter = request.GET.get('status', '')
-    ttype_filter = request.GET.get('ticket_type', '')
+    source_filter = request.GET.get('source', '').strip()
+    status_filter = request.GET.get('status', '').strip()
+    ttype_filter  = request.GET.get('ticket_type', '').strip()
 
     if source_filter:
         tickets = tickets.filter(guest__registration_source=source_filter)
@@ -867,29 +867,33 @@ def reports_export_csv(request):
     if ttype_filter:
         tickets = tickets.filter(ticket_type__name__iexact=ttype_filter)
 
-    response = HttpResponse(content_type='text/csv')
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
     response['Content-Disposition'] = 'attachment; filename="pandora_tickets_report.csv"'
+    # UTF-8 BOM so Excel opens it correctly
+    response.write('\ufeff')
 
     writer = csv.writer(response)
     writer.writerow([
         'Guest Name', 'Phone Number', 'Email',
         'Ticket Number', 'Ticket Type', 'Registration Source',
-        'Event', 'Status', 'Issued At', 'Check-In Time', 'Checked In By',
+        'Event', 'Status', 'Issued At', 'Verified At',
+        'Check-In Time', 'Checked In By',
     ])
 
     for t in tickets:
         writer.writerow([
             t.guest.full_name,
             t.guest.phone_number,
-            t.guest.email,
+            t.guest.email or '',
             t.ticket_number,
             t.ticket_type.name,
             t.guest.get_registration_source_display(),
             t.event.event_name,
-            t.status,
+            t.get_status_display(),
             t.issued_at.strftime('%Y-%m-%d %H:%M') if t.issued_at else '',
+            t.verified_at.strftime('%Y-%m-%d %H:%M') if t.verified_at else '',
             t.checked_in_at.strftime('%Y-%m-%d %H:%M') if t.checked_in_at else '',
-            t.checked_in_by.get_full_name() if t.checked_in_by else '',
+            t.checked_in_by.get_full_name() or t.checked_in_by.username if t.checked_in_by else '',
         ])
 
     return response

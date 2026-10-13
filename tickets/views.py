@@ -188,6 +188,18 @@ def guest_detail(request, pk):
     })
 
 
+@login_required
+@ticket_admin_required
+def guest_delete(request, pk):
+    guest = get_object_or_404(Guest, pk=pk)
+    if request.method == 'POST':
+        name = guest.full_name
+        guest.delete()
+        messages.success(request, f"Guest '{name}' and all their tickets have been deleted.")
+        return redirect('guest_list')
+    return render(request, 'tickets/guest_delete_confirm.html', {'guest': guest})
+
+
 # ===========================================================================
 # TICKET MANAGEMENT
 # ===========================================================================

@@ -17,6 +17,7 @@ urlpatterns = [
     path('guests/', views.guest_list, name='guest_list'),
     path('guests/create/', views.guest_create, name='guest_create'),
     path('guests/<int:pk>/', views.guest_detail, name='guest_detail'),
+    path('guests/<int:pk>/delete/', views.guest_delete, name='guest_delete'),
 
     # Tickets
     path('tickets/', views.ticket_list, name='ticket_list'),

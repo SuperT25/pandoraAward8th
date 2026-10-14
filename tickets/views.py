@@ -782,8 +782,9 @@ def staff_create(request):
 @login_required
 @super_admin_required
 def staff_edit(request, pk):
-    profile = get_object_or_404(UserProfile, pk=pk)
-    user = profile.user
+    # Look up by User pk
+    user = get_object_or_404(User, pk=pk)
+    profile = get_object_or_404(UserProfile, user=user)
     if request.method == 'POST':
         form = StaffEditForm(request.POST)
         if form.is_valid():
@@ -810,21 +811,28 @@ def staff_edit(request, pk):
 @login_required
 @super_admin_required
 def staff_delete(request, pk):
-    profile = get_object_or_404(UserProfile, pk=pk)
-    user = profile.user
+    # Look up by User pk — more stable than UserProfile pk
+    user = get_object_or_404(User, pk=pk)
 
     # Prevent admin from deleting their own account
     if user == request.user:
         messages.error(request, "You cannot delete your own account.")
         return redirect('staff_list')
 
+    try:
+        profile = user.profile
+    except Exception:
+        profile = None
+
     if request.method == 'POST':
         username = user.username
-        user.delete()  # Deletes user and profile (CASCADE)
+        user.delete()
         messages.success(request, f"Staff account '{username}' has been deleted.")
         return redirect('staff_list')
 
-    return render(request, 'tickets/staff_delete_confirm.html', {'profile': profile, 'user_obj': user})
+    return render(request, 'tickets/staff_delete_confirm.html', {
+        'profile': profile, 'user_obj': user
+    })
 
 
 

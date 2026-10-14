@@ -63,6 +63,7 @@ urlpatterns = [
     # Reports
     path('reports/', views.reports, name='reports'),
     path('reports/export/', views.reports_export_csv, name='reports_export_csv'),
+    path('reports/clear/', views.clear_attendance, name='clear_attendance'),
 
     # Verification log
     path('logs/', views.verification_log, name='verification_log'),

@@ -1,0 +1,45 @@
+{% extends 'tickets/base.html' %}
+{% block title %}Clear All Data — Pandora{% endblock %}
+{% block page_title %}Clear Attendance{% endblock %}
+
+{% block content %}
+<div style="max-width:500px;margin:0 auto;">
+  <div class="card" style="border-color:#7a0000;text-align:center;">
+
+    <div style="font-size:3.5rem;margin-bottom:0.5rem;">⚠️</div>
+    <h2 style="color:var(--red-warn);">Clear All Attendance Data?</h2>
+
+    <div style="background:var(--dark2);border-radius:10px;padding:1rem;margin:1rem 0;text-align:left;">
+      <p style="color:var(--text-muted);margin:0 0 0.5rem;font-size:0.875rem;">This will permanently delete:</p>
+      <ul style="color:var(--text-light);font-size:0.875rem;margin:0;padding-left:1.5rem;line-height:2;">
+        <li>All registered guests</li>
+        <li>All tickets</li>
+        <li>All verification logs</li>
+        <li>All re-entry logs</li>
+        <li>All check-in records</li>
+      </ul>
+    </div>
+
+    <div class="alert alert-error" style="border-radius:8px;margin-bottom:1rem;">
+      <i class="bi bi-exclamation-triangle"></i>
+      <strong>This cannot be undone.</strong> Export a CSV backup first if needed.
+    </div>
+
+    <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;">
+      <a href="{% url 'reports_export_csv' %}" class="btn-outline-gold">
+        <i class="bi bi-download"></i> Export CSV First
+      </a>
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn-danger-pandora" style="padding:0.65rem 1.4rem;">
+          <i class="bi bi-trash"></i> Yes, Clear Everything
+        </button>
+      </form>
+      <a href="{% url 'reports' %}" class="btn-outline-gold">
+        <i class="bi bi-arrow-left"></i> Cancel
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

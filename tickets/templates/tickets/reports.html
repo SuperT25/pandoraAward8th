@@ -6,11 +6,15 @@
 <div class="card">
   <div class="card-header">
     <h3><i class="bi bi-bar-chart"></i> Attendance Report</h3>
-    <!-- Export button — passes current filters -->
-    <a href="{% url 'reports_export_csv' %}{% if source_filter or status_filter or ttype_filter %}?source={{ source_filter }}&status={{ status_filter }}&ticket_type={{ ttype_filter }}{% endif %}"
-       class="btn-gold">
-      <i class="bi bi-download"></i> Export CSV
-    </a>
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+      <a href="{% url 'reports_export_csv' %}{% if source_filter or status_filter or ttype_filter %}?source={{ source_filter }}&status={{ status_filter }}&ticket_type={{ ttype_filter }}{% endif %}"
+         class="btn-gold">
+        <i class="bi bi-download"></i> Export CSV
+      </a>
+      <a href="{% url 'clear_attendance' %}" class="btn-danger-pandora">
+        <i class="bi bi-trash"></i> Clear All
+      </a>
+    </div>
   </div>
 
   <!-- Filters -->

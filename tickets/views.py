@@ -17,7 +17,7 @@ from django.views.decorators.http import require_POST
 from .decorators import (
     super_admin_required, ticket_admin_required,
     walkin_staff_required, verify_staff_required,
-    checkin_required,
+    checkin_required, admin_required,
 )
 from .forms import (
     GuestRegistrationForm, TicketCreateForm, WalkInRegistrationForm,
@@ -922,6 +922,24 @@ def reports_export_csv(request):
 # ===========================================================================
 # VERIFICATION LOG
 # ===========================================================================
+
+@login_required
+@admin_required
+def clear_attendance(request):
+    """
+    Clear all guests, tickets and logs.
+    Only Super Admin can do this. Requires POST confirmation.
+    """
+    if request.method == 'POST':
+        from .models import ReEntryLog
+        ReEntryLog.objects.all().delete()
+        VerificationLog.objects.all().delete()
+        Ticket.objects.all().delete()
+        Guest.objects.all().delete()
+        messages.success(request, "All guests, tickets and logs have been cleared.")
+        return redirect('reports')
+    return render(request, 'tickets/clear_attendance_confirm.html')
+
 
 @login_required
 @ticket_admin_required

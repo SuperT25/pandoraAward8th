@@ -243,9 +243,9 @@ def generate_ticket_pdf(ticket) -> bytes:
     from reportlab.lib.utils import ImageReader
     from reportlab.pdfgen import canvas
 
-    # Custom size: 250 x 120 mm (wider, taller boarding-pass)
+    # Custom size: 250 x 140 mm — taller to prevent text overlap
     PAGE_W = 250 * mm
-    PAGE_H = 120 * mm
+    PAGE_H = 140 * mm
     STUB_W = 65 * mm
     MAIN_W = PAGE_W - STUB_W
 
@@ -268,9 +268,10 @@ def generate_ticket_pdf(ticket) -> bytes:
     GREY      = colors.HexColor('#666666')
     LGREY     = colors.HexColor('#999999')
 
-    HEADER_H  = 65 * mm   # taller header band
-    FOOTER_H  = 12 * mm   # taller footer band
-    GRID_H    = PAGE_H - HEADER_H - FOOTER_H  # middle grid area
+    HEADER_H  = 60 * mm   # header band
+    FOOTER_H  = 10 * mm   # footer band
+    BAR_H     = 16 * mm   # barcode + phone row area
+    GRID_H    = PAGE_H - HEADER_H - FOOTER_H - BAR_H  # grid area
 
     buf = io.BytesIO()
     c = canvas.Canvas(buf, pagesize=(PAGE_W, PAGE_H))
@@ -379,9 +380,9 @@ def generate_ticket_pdf(ticket) -> bytes:
                         theme['label'] + '  •  ' + theme['price'])
 
     # ── GRID AREA (white) ─────────────────────────────────────────────
-    grid_y = FOOTER_H
+    grid_y = FOOTER_H + BAR_H
     c.setFillColor(GRID_BG)
-    c.rect(0, grid_y, MAIN_W, GRID_H, fill=1, stroke=0)
+    c.rect(0, FOOTER_H, MAIN_W, GRID_H + BAR_H, fill=1, stroke=0)
 
     # Grid lines
     c.setStrokeColor(colors.HexColor('#dddddd'))
@@ -397,17 +398,19 @@ def generate_ticket_pdf(ticket) -> bytes:
     c.line(2 * mm, mid_grid_y, MAIN_W - 2 * mm, mid_grid_y)
 
     def grid_cell(x, y, w, h, label, value, value2=None):
-        pad = 3 * mm
+        pad = 4 * mm
         c.setFillColor(GL)
-        c.setFont('Helvetica-Bold', 6)
-        c.drawString(x + pad, y + h - 5.5 * mm, label)
+        c.setFont('Helvetica-Bold', 6.5)
+        c.drawString(x + pad, y + h - 6 * mm, label)
         c.setFillColor(GV)
         c.setFont('Helvetica-Bold', 10)
-        c.drawString(x + pad, y + h - 12 * mm, str(value)[:26])
+        # Truncate and draw value
+        val_str = str(value)
+        c.drawString(x + pad, y + h - 13 * mm, val_str[:24])
         if value2:
             c.setFont('Helvetica', 8)
             c.setFillColor(GREY)
-            c.drawString(x + pad, y + h - 17 * mm, str(value2)[:28])
+            c.drawString(x + pad, y + h - 19 * mm, str(value2)[:26])
 
     row1_y = mid_grid_y
     row1_h = GRID_H / 2
@@ -415,37 +418,42 @@ def generate_ticket_pdf(ticket) -> bytes:
     row2_h = GRID_H / 2
 
     # Row 1: Ticket Holder | Ticket Type | Price
-    grid_cell(0,       row1_y, col_w,   row1_h, 'TICKET HOLDER', ticket.guest.full_name)
-    grid_cell(col_w,   row1_y, col_w,   row1_h, 'TICKET TYPE',   ticket.ticket_type.name)
-    grid_cell(col_w*2, row1_y, col_w,   row1_h, 'PRICE',         theme['price'])
+    grid_cell(0,       row1_y, col_w, row1_h, 'TICKET HOLDER', ticket.guest.full_name)
+    grid_cell(col_w,   row1_y, col_w, row1_h, 'TICKET TYPE',   ticket.ticket_type.name)
+    grid_cell(col_w*2, row1_y, col_w, row1_h, 'PRICE',         theme['price'])
 
     # Row 2: Event | Venue | Date & Time
-    grid_cell(0,       row2_y, col_w,   row2_h, 'EVENT',
+    grid_cell(0,       row2_y, col_w, row2_h, 'EVENT',
               'Pandora Awards 8th Edition')
-    grid_cell(col_w,   row2_y, col_w,   row2_h, 'VENUE',
+    grid_cell(col_w,   row2_y, col_w, row2_h, 'VENUE',
               'A Class Event Center', 'Sapphire Hall, Maitama, Abuja')
-    grid_cell(col_w*2, row2_y, col_w,   row2_h, 'DATE & TIME',
+    grid_cell(col_w*2, row2_y, col_w, row2_h, 'DATE & TIME',
               ticket.event.event_date.strftime('%a, %d %b %Y'),
               'Red Carpet 4PM  •  Main Event 6PM')
 
+    # Divider between grid and barcode area
+    c.setStrokeColor(colors.HexColor('#eeeeee'))
+    c.setLineWidth(0.5)
+    c.line(2 * mm, FOOTER_H + BAR_H, MAIN_W - 2 * mm, FOOTER_H + BAR_H)
+
     # ── Barcode + ticket number ───────────────────────────────────────
-    bar_y = grid_y + 1 * mm
-    bar_h = 6 * mm
+    bar_area_y = FOOTER_H + 2 * mm
+    bar_h = 7 * mm
     bar_w = MAIN_W * 0.55
     bar_x = 5 * mm
-    _draw_barcode(c, bar_x, bar_y, bar_w, bar_h, ticket.ticket_number)
+    _draw_barcode(c, bar_x, bar_area_y + 5 * mm, bar_w, bar_h, ticket.ticket_number)
     c.setFillColor(BLACK)
     c.setFont('Helvetica', 7)
-    c.drawString(bar_x, bar_y - 3.5 * mm, ticket.ticket_number)
+    c.drawString(bar_x, bar_area_y + 2 * mm, ticket.ticket_number)
 
-    # ── Phone + Email row ─────────────────────────────────────────────
-    phone_x = bar_x + bar_w + 5 * mm
+    # ── Phone row ─────────────────────────────────────────────────────
+    phone_x = bar_x + bar_w + 6 * mm
     c.setFillColor(GL)
     c.setFont('Helvetica-Bold', 5.5)
-    c.drawString(phone_x, bar_y + bar_h, 'PHONE')
+    c.drawString(phone_x, bar_area_y + 11 * mm, 'PHONE')
     c.setFillColor(GV)
-    c.setFont('Helvetica', 7.5)
-    c.drawString(phone_x, bar_y + bar_h - 4.5 * mm, ticket.guest.phone_number)
+    c.setFont('Helvetica', 8)
+    c.drawString(phone_x, bar_area_y + 6 * mm, ticket.guest.phone_number)
 
     # ── FOOTER BAND ───────────────────────────────────────────────────
     c.setFillColor(FTR_BG)

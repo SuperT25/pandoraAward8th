@@ -64,75 +64,75 @@ def save_qr_to_file(ticket) -> str:
 
 TICKET_CONFIG = {
     'REGULAR': {
-        'bg':         'reg.jpeg',
-        'name_color': '#1a0e00',
-        'name_x':     22,
-        'name_y':     28,
+        'bg':              'REGULAR.jpeg',
+        'name_color':      '#1a0e00',       # dark on white bg
+        'name_x':          22,
+        'name_y':          22,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  90,
+        'qr_center_y_mm':  115,             # upper area of stub
         'qr_size_mm':      30,
     },
     'VIP': {
-        'bg':         'VIP.jpeg',
-        'name_color': '#c9960c',
-        'name_x':     22,
-        'name_y':     28,
+        'bg':              'VIP.jpeg',
+        'name_color':      '#c9960c',       # gold on black bg
+        'name_x':          22,
+        'name_y':          22,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  90,
+        'qr_center_y_mm':  115,
         'qr_size_mm':      30,
     },
     'SPECIAL GUEST SEAT': {
-        'bg':         'special.jpeg',
-        'name_color': '#c9960c',
-        'name_x':     22,
-        'name_y':     28,
+        'bg':              'SPECIAL TABLE.jpeg',
+        'name_color':      '#c9960c',       # gold on green bg
+        'name_x':          22,
+        'name_y':          22,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  90,
+        'qr_center_y_mm':  115,
         'qr_size_mm':      30,
     },
     'SPECIAL GUEST': {
-        'bg':         'special.jpeg',
-        'name_color': '#c9960c',
-        'name_x':     22,
-        'name_y':     28,
+        'bg':              'SPECIAL TABLE.jpeg',
+        'name_color':      '#c9960c',
+        'name_x':          22,
+        'name_y':          22,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  90,
+        'qr_center_y_mm':  115,
         'qr_size_mm':      30,
     },
     'GOLD TABLE': {
-        'bg':         'table.jpeg',
-        'name_color': '#c9960c',
-        'name_x':     22,
-        'name_y':     28,
+        'bg':              'TABLE OF TEN.jpeg',
+        'name_color':      '#c9960c',       # gold on dark purple bg
+        'name_x':          22,
+        'name_y':          22,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  90,
+        'qr_center_y_mm':  115,
         'qr_size_mm':      30,
     },
     'TABLE OF TEN': {
-        'bg':         'table.jpeg',
-        'name_color': '#c9960c',
-        'name_x':     22,
-        'name_y':     28,
+        'bg':              'TABLE OF TEN.jpeg',
+        'name_color':      '#c9960c',
+        'name_x':          22,
+        'name_y':          22,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  90,
+        'qr_center_y_mm':  115,
         'qr_size_mm':      30,
     },
     'MEDIA': {
-        'bg':         'reg.jpeg',
-        'name_color': '#1a0e00',
-        'name_x':     22,
-        'name_y':     28,
+        'bg':              'REGULAR.jpeg',
+        'name_color':      '#1a0e00',
+        'name_x':          22,
+        'name_y':          22,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  90,
+        'qr_center_y_mm':  115,
         'qr_size_mm':      30,
     },
     'STAFF': {
-        'bg':         'reg.jpeg',
-        'name_color': '#1a0e00',
-        'name_x':     22,
-        'name_y':     28,
+        'bg':              'REGULAR.jpeg',
+        'name_color':      '#1a0e00',
+        'name_x':          22,
+        'name_y':          22,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  90,
+        'qr_center_y_mm':  115,
         'qr_size_mm':      30,
     },
 }
@@ -217,12 +217,12 @@ def generate_ticket_pdf(ticket) -> bytes:
         qr_x, qr_y, qr_sz, qr_sz,
     )
 
-    # Ticket number below QR
+    # Ticket number — small text above QR so it doesn't overlap "ADMIT ONE"
     c.setFillColor(colors.HexColor(cfg['name_color']))
-    c.setFont('Helvetica-Bold', 7)
+    c.setFont('Helvetica-Bold', 6)
     c.drawCentredString(
         qr_cx,
-        qr_y - 5 * mm,
+        qr_y - 4 * mm,
         ticket.ticket_number,
     )
 

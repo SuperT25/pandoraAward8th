@@ -41,8 +41,6 @@ class Command(BaseCommand):
             ('VIP',                 'VIP admission with premium seating'),
             ('Special Guest Seat',  'Exclusive Special Guest Seat with premium privileges'),
             ('Gold Table',          'Exclusive Gold Table reservation for groups'),
-            ('Media',               'Media & Press accreditation'),
-            ('Staff',               'Event staff and crew access'),
         ]
         for name, desc in types:
             tt, created = TicketType.objects.get_or_create(name=name, defaults={'description': desc, 'active': True})
@@ -50,6 +48,12 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(f'  ✔ Ticket type: {name}'))
             else:
                 self.stdout.write(f'  — Ticket type already exists: {name}')
+
+        # Deactivate/delete Media and Staff ticket types
+        from tickets.models import TicketType as TT
+        for remove_name in ['Media', 'Staff']:
+            TT.objects.filter(name=remove_name).update(active=False)
+            self.stdout.write(f'  — Deactivated ticket type: {remove_name}')
 
         # ── Super admin account ────────────────────────────────────────────
         if not User.objects.filter(username='pandoraadmin').exists():

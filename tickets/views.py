@@ -194,6 +194,12 @@ def guest_delete(request, pk):
     guest = get_object_or_404(Guest, pk=pk)
     if request.method == 'POST':
         name = guest.full_name
+        # Delete all related tickets and logs first
+        from .models import ReEntryLog, VerificationLog
+        for ticket in guest.tickets.all():
+            ReEntryLog.objects.filter(ticket=ticket).delete()
+            VerificationLog.objects.filter(ticket=ticket).delete()
+        guest.tickets.all().delete()
         guest.delete()
         messages.success(request, f"Guest '{name}' and all their tickets have been deleted.")
         return redirect('guest_list')

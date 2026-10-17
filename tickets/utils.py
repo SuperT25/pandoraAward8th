@@ -66,68 +66,65 @@ TICKET_CONFIG = {
     'REGULAR': {
         'bg':         'reg.jpeg',
         'name_color': '#1a0e00',    # dark on white/cream bg
-        # Name position (from bottom-left of page, mm)
         'name_x':     22,
-        'name_y':     18,
-        # QR box centre on the stub (the white square in stub)
-        # stub starts at ~75.5% width
-        'qr_center_x_pct': 0.875,  # % of page width
-        'qr_center_y_mm':  95,     # mm from bottom
-        'qr_size_mm':      38,
+        'name_y':     28,           # moved up — inside the ticket border
+        'qr_center_x_pct': 0.875,
+        'qr_center_y_mm':  105,
+        'qr_size_mm':      42,
     },
     'VIP': {
         'bg':         'VIP.jpeg',
         'name_color': '#c9960c',    # gold on black bg
         'name_x':     22,
-        'name_y':     18,
+        'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  97,
-        'qr_size_mm':      38,
+        'qr_center_y_mm':  105,
+        'qr_size_mm':      42,
     },
     'SPECIAL GUEST SEAT': {
         'bg':         'special.jpeg',
         'name_color': '#c9960c',    # gold on green bg
         'name_x':     22,
-        'name_y':     18,
+        'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  97,
-        'qr_size_mm':      38,
+        'qr_center_y_mm':  105,
+        'qr_size_mm':      42,
     },
     'SPECIAL GUEST': {
         'bg':         'special.jpeg',
         'name_color': '#c9960c',
         'name_x':     22,
-        'name_y':     18,
+        'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  97,
-        'qr_size_mm':      38,
+        'qr_center_y_mm':  105,
+        'qr_size_mm':      42,
     },
     'GOLD TABLE': {
         'bg':         'table.jpeg',
         'name_color': '#c9960c',    # gold on dark purple bg
         'name_x':     22,
-        'name_y':     18,
+        'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  97,
-        'qr_size_mm':      38,
+        'qr_center_y_mm':  105,
+        'qr_size_mm':      42,
     },
     'MEDIA': {
-        'bg':         'reg.jpeg',   # fallback
+        'bg':         'reg.jpeg',
         'name_color': '#1a0e00',
         'name_x':     22,
-        'name_y':     18,
+        'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  95,
-        'qr_size_mm':      38,
+        'qr_center_y_mm':  105,
+        'qr_size_mm':      42,
     },
     'STAFF': {
-        'bg':         'reg.jpeg',   # fallback
+        'bg':         'reg.jpeg',
         'name_color': '#1a0e00',
         'name_x':     22,
-        'name_y':     18,
+        'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  95,
-        'qr_size_mm':      38,
+        'qr_center_y_mm':  105,
+        'qr_size_mm':      42,
     },
 }
 
@@ -174,20 +171,20 @@ def generate_ticket_pdf(ticket) -> bytes:
     # The background has "TICKET HOLDER" label — name goes below it
     # ════════════════════════════════════════════════════════════════
 
-    guest_name = ticket.guest.full_name
+    guest_name = ticket.guest.full_name.upper()  # UPPERCASE like reference
 
     # Font size based on name length
-    if len(guest_name) <= 18:
-        name_size = 30
-    elif len(guest_name) <= 24:
-        name_size = 25
-    elif len(guest_name) <= 32:
-        name_size = 20
+    if len(guest_name) <= 16:
+        name_size = 32
+    elif len(guest_name) <= 22:
+        name_size = 26
+    elif len(guest_name) <= 30:
+        name_size = 22
     else:
-        name_size = 16
+        name_size = 18
 
     c.setFillColor(name_color)
-    c.setFont('Helvetica-BoldOblique', name_size)
+    c.setFont('Helvetica-Bold', name_size)   # Bold, not italic
     c.drawString(
         cfg['name_x'] * mm,
         cfg['name_y'] * mm,

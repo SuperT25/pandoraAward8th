@@ -70,7 +70,7 @@ TICKET_CONFIG = {
         'name_y':     28,           # moved up — inside the ticket border
         'qr_center_x_pct': 0.875,
         'qr_center_y_mm':  105,
-        'qr_size_mm':      42,
+        'qr_size_mm':      32,
     },
     'VIP': {
         'bg':         'VIP.jpeg',
@@ -79,7 +79,7 @@ TICKET_CONFIG = {
         'name_y':     28,
         'qr_center_x_pct': 0.875,
         'qr_center_y_mm':  105,
-        'qr_size_mm':      42,
+        'qr_size_mm':      32,
     },
     'SPECIAL GUEST SEAT': {
         'bg':         'special.jpeg',
@@ -88,7 +88,7 @@ TICKET_CONFIG = {
         'name_y':     28,
         'qr_center_x_pct': 0.875,
         'qr_center_y_mm':  105,
-        'qr_size_mm':      42,
+        'qr_size_mm':      32,
     },
     'SPECIAL GUEST': {
         'bg':         'special.jpeg',
@@ -97,7 +97,7 @@ TICKET_CONFIG = {
         'name_y':     28,
         'qr_center_x_pct': 0.875,
         'qr_center_y_mm':  105,
-        'qr_size_mm':      42,
+        'qr_size_mm':      32,
     },
     'GOLD TABLE': {
         'bg':         'table.jpeg',
@@ -106,7 +106,7 @@ TICKET_CONFIG = {
         'name_y':     28,
         'qr_center_x_pct': 0.875,
         'qr_center_y_mm':  105,
-        'qr_size_mm':      42,
+        'qr_size_mm':      32,
     },
     'MEDIA': {
         'bg':         'reg.jpeg',
@@ -115,7 +115,7 @@ TICKET_CONFIG = {
         'name_y':     28,
         'qr_center_x_pct': 0.875,
         'qr_center_y_mm':  105,
-        'qr_size_mm':      42,
+        'qr_size_mm':      32,
     },
     'STAFF': {
         'bg':         'reg.jpeg',
@@ -124,7 +124,7 @@ TICKET_CONFIG = {
         'name_y':     28,
         'qr_center_x_pct': 0.875,
         'qr_center_y_mm':  105,
-        'qr_size_mm':      42,
+        'qr_size_mm':      32,
     },
 }
 

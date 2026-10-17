@@ -24,20 +24,21 @@ TICKET_W = 8.0 * IN   # 576 pt
 TICKET_H = 3.0 * IN   # 216 pt
 
 # Stub occupies the right 25 % (~2 in) of the ticket
-STUB_X_PCT  = 0.755    # stub left edge  ≈ 76 % from left
-STUB_W_PCT  = 0.245    # stub width      ≈ 24.5 %
+STUB_X_PCT  = 0.755    # stub left edge
+STUB_W_PCT  = 0.245    # stub width
 
-# QR placeholder centre inside the stub (measured from image)
-# x: centred on stub   y: ~55 % from top of ticket
-QR_CX_PCT   = 0.875   # 87.5 % of ticket width
-QR_CY_PCT   = 0.50    # 50 %  of ticket height  (middle of stub)
-QR_SIZE_IN  = 1.2     # inches
-QR_SIZE_PT  = QR_SIZE_IN * IN   # 86.4 pt
+# QR placeholder centre inside the gold-bordered box on stub
+# x: ~84% of ticket width (inside stub, not too far right)
+# y: ~50% of ticket height (middle of stub between category and SCAN TO VALIDATE)
+QR_CX_PCT   = 0.840   # 84% of ticket width
+QR_CY_PCT   = 0.50    # 50% of ticket height
+QR_SIZE_IN  = 1.0     # inches (reduced from 1.2)
+QR_SIZE_PT  = QR_SIZE_IN * IN   # 72 pt
 
 # Guest name strip (TICKET HOLDER area)
-# x: ~12 % from left   y: ~82 % from top  → ~18 % from bottom
-NAME_X_PCT  = 0.12
-NAME_Y_PCT  = 0.18    # % from BOTTOM (ReportLab y=0 is bottom)
+# x: ~14% from left   y: ~14% from bottom (inside the strip, not outside)
+NAME_X_PCT  = 0.14
+NAME_Y_PCT  = 0.14    # % from BOTTOM
 
 
 # ---------------------------------------------------------------------------
@@ -199,11 +200,11 @@ def generate_ticket_pdf(ticket) -> bytes:
     # Measured from images: x ≈ 12 %, y ≈ 18-22 % from bottom.
     guest_name = ticket.guest.full_name.upper()
 
-    # Auto-size font
-    if   len(guest_name) <= 16: name_pt = 22
-    elif len(guest_name) <= 22: name_pt = 18
-    elif len(guest_name) <= 30: name_pt = 15
-    else:                        name_pt = 12
+    # Auto-size font — smaller than before
+    if   len(guest_name) <= 16: name_pt = 16
+    elif len(guest_name) <= 22: name_pt = 14
+    elif len(guest_name) <= 30: name_pt = 12
+    else:                        name_pt = 10
 
     name_x = TICKET_W * NAME_X_PCT
     name_y = TICKET_H * NAME_Y_PCT

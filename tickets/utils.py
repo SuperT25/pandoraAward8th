@@ -170,22 +170,38 @@ def generate_ticket_pdf(ticket) -> bytes:
     c.drawString(22 * mm, 24 * mm, guest_name[:35])
 
     # ════════════════════════════════════════════════════════════════
-    # QR CODE — overlaid on stub (right panel) replacing barcode area
-    # The stub starts at ~73% of page width
-    # QR position: centre of stub, roughly middle-height
+    # QR CODE — cover the baked-in barcode first, then draw real QR
     # ════════════════════════════════════════════════════════════════
 
-    # Stub starts at about 75% of page width based on the designs
     stub_x = PAGE_W * 0.755
     stub_w = PAGE_W - stub_x
 
+    # Cover the baked-in barcode area on the stub
+    # The barcode in the images sits roughly in the upper-middle of stub
+    barcode_cover_colors = {
+        'REGULAR':            '#f5f0e8',   # light cream
+        'VIP':                '#0a0a0a',   # black
+        'SPECIAL GUEST SEAT': '#1a3a1a',   # dark green
+        'SPECIAL GUEST':      '#1a3a1a',
+        'GOLD TABLE':         '#1a0a28',   # dark purple
+        'MEDIA':              '#f5f0e8',
+        'STAFF':              '#f5f0e8',
+    }
+    bc_cover = barcode_cover_colors.get(ttype, '#0a0a0a')
+    cover_w = stub_w - 8 * mm
+    cover_x = stub_x + 4 * mm
+    # Cover from y=55mm to y=120mm from bottom (barcode + surrounding area)
+    c.setFillColor(colors.HexColor(bc_cover))
+    c.rect(cover_x, 55 * mm, cover_w, 65 * mm, fill=1, stroke=0)
+
+    # Now draw the real QR code
     qr_bytes = generate_qr_image(ticket.qr_token, size=6)
     qr_sz = 34 * mm
     qr_x = stub_x + (stub_w - qr_sz) / 2
-    qr_y = PAGE_H / 2 - qr_sz / 2 - 12 * mm
+    qr_y = PAGE_H / 2 - qr_sz / 2 - 5 * mm
 
-    # White background behind QR for scannability
-    c.setFillColor(WHITE)
+    # White background for QR
+    c.setFillColor(colors.white)
     c.roundRect(qr_x - 2*mm, qr_y - 2*mm, qr_sz + 4*mm, qr_sz + 4*mm,
                 2*mm, fill=1, stroke=0)
     c.drawImage(
@@ -193,9 +209,9 @@ def generate_ticket_pdf(ticket) -> bytes:
         qr_x, qr_y, qr_sz, qr_sz,
     )
 
-    # ── Ticket number under QR ────────────────────────────────────────
-    c.setFillColor(BLACK)
-    c.setFont('Helvetica-Bold', 8)
+    # Ticket number under QR
+    c.setFillColor(colors.black)
+    c.setFont('Helvetica-Bold', 7.5)
     c.drawCentredString(
         stub_x + stub_w / 2,
         qr_y - 5 * mm,

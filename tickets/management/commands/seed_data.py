@@ -40,7 +40,7 @@ class Command(BaseCommand):
             ('Regular',             'Standard event admission — Red Carpet from 4 PM'),
             ('VIP',                 'VIP admission with premium seating'),
             ('Special Guest Seat',  'Exclusive Special Guest Seat with premium privileges'),
-            ('Gold Table',          'Exclusive Gold Table reservation for groups'),
+            ('Table of Ten',         'Exclusive Table for 10 guests — ₦800,000'),
         ]
         for name, desc in types:
             tt, created = TicketType.objects.get_or_create(name=name, defaults={'description': desc, 'active': True})
@@ -54,6 +54,11 @@ class Command(BaseCommand):
         for remove_name in ['Media', 'Staff']:
             TT.objects.filter(name=remove_name).update(active=False)
             self.stdout.write(f'  — Deactivated ticket type: {remove_name}')
+
+        # Rename Gold Table → Table of Ten
+        renamed = TT.objects.filter(name='Gold Table').update(name='Table of Ten')
+        if renamed:
+            self.stdout.write(self.style.SUCCESS('  ✔ Renamed: Gold Table → Table of Ten'))
 
         # ── Super admin account ────────────────────────────────────────────
         if not User.objects.filter(username='pandoraadmin').exists():

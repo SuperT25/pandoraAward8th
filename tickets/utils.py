@@ -108,6 +108,15 @@ TICKET_CONFIG = {
         'qr_center_y_mm':  78,
         'qr_size_mm':      28,
     },
+    'TABLE OF TEN': {
+        'bg':         'table.jpeg',
+        'name_color': '#c9960c',
+        'name_x':     22,
+        'name_y':     28,
+        'qr_center_x_pct': 0.875,
+        'qr_center_y_mm':  78,
+        'qr_size_mm':      28,
+    },
     'MEDIA': {
         'bg':         'reg.jpeg',
         'name_color': '#1a0e00',

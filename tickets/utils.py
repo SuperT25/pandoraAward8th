@@ -69,8 +69,8 @@ TICKET_CONFIG = {
         'name_x':     22,
         'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  78,
-        'qr_size_mm':      28,
+        'qr_center_y_mm':  90,
+        'qr_size_mm':      30,
     },
     'VIP': {
         'bg':         'VIP.jpeg',
@@ -78,8 +78,8 @@ TICKET_CONFIG = {
         'name_x':     22,
         'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  78,
-        'qr_size_mm':      28,
+        'qr_center_y_mm':  90,
+        'qr_size_mm':      30,
     },
     'SPECIAL GUEST SEAT': {
         'bg':         'special.jpeg',
@@ -87,8 +87,8 @@ TICKET_CONFIG = {
         'name_x':     22,
         'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  78,
-        'qr_size_mm':      28,
+        'qr_center_y_mm':  90,
+        'qr_size_mm':      30,
     },
     'SPECIAL GUEST': {
         'bg':         'special.jpeg',
@@ -96,8 +96,8 @@ TICKET_CONFIG = {
         'name_x':     22,
         'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  78,
-        'qr_size_mm':      28,
+        'qr_center_y_mm':  90,
+        'qr_size_mm':      30,
     },
     'GOLD TABLE': {
         'bg':         'table.jpeg',
@@ -105,8 +105,8 @@ TICKET_CONFIG = {
         'name_x':     22,
         'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  78,
-        'qr_size_mm':      28,
+        'qr_center_y_mm':  90,
+        'qr_size_mm':      30,
     },
     'TABLE OF TEN': {
         'bg':         'table.jpeg',
@@ -114,8 +114,8 @@ TICKET_CONFIG = {
         'name_x':     22,
         'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  78,
-        'qr_size_mm':      28,
+        'qr_center_y_mm':  90,
+        'qr_size_mm':      30,
     },
     'MEDIA': {
         'bg':         'reg.jpeg',
@@ -123,8 +123,8 @@ TICKET_CONFIG = {
         'name_x':     22,
         'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  78,
-        'qr_size_mm':      28,
+        'qr_center_y_mm':  90,
+        'qr_size_mm':      30,
     },
     'STAFF': {
         'bg':         'reg.jpeg',
@@ -132,8 +132,8 @@ TICKET_CONFIG = {
         'name_x':     22,
         'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  78,
-        'qr_size_mm':      28,
+        'qr_center_y_mm':  90,
+        'qr_size_mm':      30,
     },
 }
 

@@ -58,46 +58,85 @@ def save_qr_to_file(ticket) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Map ticket type → background image file
+# Ticket type → background image + text colour
+# New clean images: no sample name, no barcode — ready for overlay
 # ---------------------------------------------------------------------------
 
-TICKET_BG_MAP = {
-    'REGULAR':            'regular.jpeg',
-    'VIP':                'vip.jpeg',
-    'SPECIAL GUEST SEAT': 'special guest.jpeg',
-    'SPECIAL GUEST':      'special guest.jpeg',
-    'GOLD TABLE':         'table.jpeg',
-    'MEDIA':              'regular.jpeg',   # fallback
-    'STAFF':              'regular.jpeg',   # fallback
+TICKET_CONFIG = {
+    'REGULAR': {
+        'bg':         'reg.jpeg',
+        'name_color': '#1a0e00',    # dark on white/cream bg
+        # Name position (from bottom-left of page, mm)
+        'name_x':     22,
+        'name_y':     18,
+        # QR box centre on the stub (the white square in stub)
+        # stub starts at ~75.5% width
+        'qr_center_x_pct': 0.875,  # % of page width
+        'qr_center_y_mm':  95,     # mm from bottom
+        'qr_size_mm':      38,
+    },
+    'VIP': {
+        'bg':         'VIP.jpeg',
+        'name_color': '#c9960c',    # gold on black bg
+        'name_x':     22,
+        'name_y':     18,
+        'qr_center_x_pct': 0.875,
+        'qr_center_y_mm':  97,
+        'qr_size_mm':      38,
+    },
+    'SPECIAL GUEST SEAT': {
+        'bg':         'special.jpeg',
+        'name_color': '#c9960c',    # gold on green bg
+        'name_x':     22,
+        'name_y':     18,
+        'qr_center_x_pct': 0.875,
+        'qr_center_y_mm':  97,
+        'qr_size_mm':      38,
+    },
+    'SPECIAL GUEST': {
+        'bg':         'special.jpeg',
+        'name_color': '#c9960c',
+        'name_x':     22,
+        'name_y':     18,
+        'qr_center_x_pct': 0.875,
+        'qr_center_y_mm':  97,
+        'qr_size_mm':      38,
+    },
+    'GOLD TABLE': {
+        'bg':         'table.jpeg',
+        'name_color': '#c9960c',    # gold on dark purple bg
+        'name_x':     22,
+        'name_y':     18,
+        'qr_center_x_pct': 0.875,
+        'qr_center_y_mm':  97,
+        'qr_size_mm':      38,
+    },
+    'MEDIA': {
+        'bg':         'reg.jpeg',   # fallback
+        'name_color': '#1a0e00',
+        'name_x':     22,
+        'name_y':     18,
+        'qr_center_x_pct': 0.875,
+        'qr_center_y_mm':  95,
+        'qr_size_mm':      38,
+    },
+    'STAFF': {
+        'bg':         'reg.jpeg',   # fallback
+        'name_color': '#1a0e00',
+        'name_x':     22,
+        'name_y':     18,
+        'qr_center_x_pct': 0.875,
+        'qr_center_y_mm':  95,
+        'qr_size_mm':      38,
+    },
 }
 
-# Ticket type → name overlay text (what shows on stub)
-TICKET_STUB_LABELS = {
-    'REGULAR':            'REGULAR TICKET',
-    'VIP':                'VIP TICKET',
-    'SPECIAL GUEST SEAT': 'SPECIAL GUEST',
-    'SPECIAL GUEST':      'SPECIAL GUEST',
-    'GOLD TABLE':         'TABLE FOR TEN',
-    'MEDIA':              'MEDIA',
-    'STAFF':              'STAFF',
-}
-
-# Ticket type → name text colour for guest name overlay
-TICKET_NAME_COLORS = {
-    'REGULAR':            '#1a0e00',   # dark on white bg
-    'VIP':                '#c9960c',   # gold on black bg
-    'SPECIAL GUEST SEAT': '#c9960c',   # gold on green bg
-    'SPECIAL GUEST':      '#c9960c',
-    'GOLD TABLE':         '#c9960c',   # gold on dark purple bg
-    'MEDIA':              '#1a0e00',
-    'STAFF':              '#1a0e00',
-}
+DEFAULT_CONFIG = TICKET_CONFIG['REGULAR']
 
 
 # ---------------------------------------------------------------------------
-# PDF Ticket — uses pre-designed background images, overlays dynamic text
-# Layout exactly matches the 4 reference ticket designs
-# Size: A4 landscape = 297 x 210 mm (matches widescreen ticket proportions)
+# PDF Ticket — uses clean background images, overlays name + QR
+# Size: A4 landscape = 297 x 210 mm
 # ---------------------------------------------------------------------------
 
 def generate_ticket_pdf(ticket) -> bytes:
@@ -110,13 +149,10 @@ def generate_ticket_pdf(ticket) -> bytes:
     PAGE_W, PAGE_H = landscape(A4)   # 297 x 210 mm
 
     ttype = ticket.ticket_type.name.upper()
-    bg_file = TICKET_BG_MAP.get(ttype, 'regular.jpeg')
-    bg_path = os.path.join(settings.BASE_DIR, 'static', 'img', bg_file)
+    cfg = TICKET_CONFIG.get(ttype, DEFAULT_CONFIG)
 
-    name_color = colors.HexColor(TICKET_NAME_COLORS.get(ttype, '#1a0e00'))
-    GOLD       = colors.HexColor('#c9960c')
-    WHITE      = colors.white
-    BLACK      = colors.black
+    bg_path = os.path.join(settings.BASE_DIR, 'static', 'img', cfg['bg'])
+    name_color = colors.HexColor(cfg['name_color'])
 
     buf = io.BytesIO()
     c = canvas.Canvas(buf, pagesize=(PAGE_W, PAGE_H))
@@ -130,90 +166,56 @@ def generate_ticket_pdf(ticket) -> bytes:
             mask='auto',
         )
     else:
-        # Fallback plain background
         c.setFillColor(colors.HexColor('#f5f0e8'))
         c.rect(0, 0, PAGE_W, PAGE_H, fill=1, stroke=0)
 
     # ════════════════════════════════════════════════════════════════
-    # GUEST NAME — cover the baked-in sample name first, then
-    # write the real guest name cleanly on top
+    # GUEST NAME — placed in the blank TICKET HOLDER area
+    # The background has "TICKET HOLDER" label — name goes below it
     # ════════════════════════════════════════════════════════════════
 
     guest_name = ticket.guest.full_name
 
-    # Cover rectangle dimensions — covers the name area in the bg image
-    # Position varies slightly per ticket type but is roughly:
-    # x: 18mm, y: 18mm from bottom, width: 55% of page, height: 22mm
-    cover_colors = {
-        'REGULAR':            '#e8e0d0',   # cream/off-white (matches Regular bg)
-        'VIP':                '#0a0a0a',   # near-black (matches VIP bg)
-        'SPECIAL GUEST SEAT': '#1a3a1a',   # dark green (matches Special Guest bg)
-        'SPECIAL GUEST':      '#1a3a1a',
-        'GOLD TABLE':         '#1a0a28',   # dark purple (matches Gold Table bg)
-        'MEDIA':              '#e8e0d0',
-        'STAFF':              '#e8e0d0',
-    }
-    cover_hex = cover_colors.get(ttype, '#1a0a0a')
-    c.setFillColor(colors.HexColor(cover_hex))
-    c.rect(18 * mm, 16 * mm, PAGE_W * 0.58, 24 * mm, fill=1, stroke=0)
-
-    # Now write the real guest name
-    if len(guest_name) <= 20:
-        name_font_size = 28
-    elif len(guest_name) <= 28:
-        name_font_size = 22
+    # Font size based on name length
+    if len(guest_name) <= 18:
+        name_size = 30
+    elif len(guest_name) <= 24:
+        name_size = 25
+    elif len(guest_name) <= 32:
+        name_size = 20
     else:
-        name_font_size = 18
+        name_size = 16
 
     c.setFillColor(name_color)
-    c.setFont('Helvetica-BoldOblique', name_font_size)
-    c.drawString(22 * mm, 24 * mm, guest_name[:35])
+    c.setFont('Helvetica-BoldOblique', name_size)
+    c.drawString(
+        cfg['name_x'] * mm,
+        cfg['name_y'] * mm,
+        guest_name[:40],
+    )
 
     # ════════════════════════════════════════════════════════════════
-    # QR CODE — cover the baked-in barcode first, then draw real QR
+    # QR CODE — placed inside the white square box on the stub
     # ════════════════════════════════════════════════════════════════
 
-    stub_x = PAGE_W * 0.755
-    stub_w = PAGE_W - stub_x
+    qr_sz = cfg['qr_size_mm'] * mm
+    qr_cx = PAGE_W * cfg['qr_center_x_pct']
+    qr_cy = cfg['qr_center_y_mm'] * mm
 
-    # Cover the baked-in barcode area on the stub
-    # The barcode in the images sits roughly in the upper-middle of stub
-    barcode_cover_colors = {
-        'REGULAR':            '#f5f0e8',   # light cream
-        'VIP':                '#0a0a0a',   # black
-        'SPECIAL GUEST SEAT': '#1a3a1a',   # dark green
-        'SPECIAL GUEST':      '#1a3a1a',
-        'GOLD TABLE':         '#1a0a28',   # dark purple
-        'MEDIA':              '#f5f0e8',
-        'STAFF':              '#f5f0e8',
-    }
-    bc_cover = barcode_cover_colors.get(ttype, '#0a0a0a')
-    cover_w = stub_w - 8 * mm
-    cover_x = stub_x + 4 * mm
-    # Cover from y=55mm to y=120mm from bottom (barcode + surrounding area)
-    c.setFillColor(colors.HexColor(bc_cover))
-    c.rect(cover_x, 55 * mm, cover_w, 65 * mm, fill=1, stroke=0)
+    qr_x = qr_cx - qr_sz / 2
+    qr_y = qr_cy - qr_sz / 2
 
-    # Now draw the real QR code
     qr_bytes = generate_qr_image(ticket.qr_token, size=6)
-    qr_sz = 34 * mm
-    qr_x = stub_x + (stub_w - qr_sz) / 2
-    qr_y = PAGE_H / 2 - qr_sz / 2 - 5 * mm
-
-    # White background for QR
-    c.setFillColor(colors.white)
-    c.roundRect(qr_x - 2*mm, qr_y - 2*mm, qr_sz + 4*mm, qr_sz + 4*mm,
-                2*mm, fill=1, stroke=0)
     c.drawImage(
         ImageReader(io.BytesIO(qr_bytes)),
         qr_x, qr_y, qr_sz, qr_sz,
     )
 
-    # Ticket number under QR
-    c.setFillColor(colors.black)
-    c.setFont('Helvetica-Bold', 7.5)
+    # Ticket number below QR
+    c.setFillColor(colors.HexColor(cfg['name_color']))
+    c.setFont('Helvetica-Bold', 7)
     c.drawCentredString(
-        stub_x + stub_w / 2,
+        qr_cx,
         qr_y - 5 * mm,
         ticket.ticket_number,
     )

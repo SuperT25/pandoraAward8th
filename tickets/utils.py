@@ -135,18 +135,29 @@ def generate_ticket_pdf(ticket) -> bytes:
         c.rect(0, 0, PAGE_W, PAGE_H, fill=1, stroke=0)
 
     # ════════════════════════════════════════════════════════════════
-    # GUEST NAME — overlaid at "TICKET HOLDER" section bottom-left
-    # Position: bottom strip of main panel, ~y=30mm from bottom
+    # GUEST NAME — cover the baked-in sample name first, then
+    # write the real guest name cleanly on top
     # ════════════════════════════════════════════════════════════════
-
-    # The ticket holder name area is roughly:
-    # x: 20mm from left
-    # y: ~28-38mm from bottom
-    # font: large italic bold
 
     guest_name = ticket.guest.full_name
 
-    # Choose font size based on name length
+    # Cover rectangle dimensions — covers the name area in the bg image
+    # Position varies slightly per ticket type but is roughly:
+    # x: 18mm, y: 18mm from bottom, width: 55% of page, height: 22mm
+    cover_colors = {
+        'REGULAR':            '#e8e0d0',   # cream/off-white (matches Regular bg)
+        'VIP':                '#0a0a0a',   # near-black (matches VIP bg)
+        'SPECIAL GUEST SEAT': '#1a3a1a',   # dark green (matches Special Guest bg)
+        'SPECIAL GUEST':      '#1a3a1a',
+        'GOLD TABLE':         '#1a0a28',   # dark purple (matches Gold Table bg)
+        'MEDIA':              '#e8e0d0',
+        'STAFF':              '#e8e0d0',
+    }
+    cover_hex = cover_colors.get(ttype, '#1a0a0a')
+    c.setFillColor(colors.HexColor(cover_hex))
+    c.rect(18 * mm, 16 * mm, PAGE_W * 0.58, 24 * mm, fill=1, stroke=0)
+
+    # Now write the real guest name
     if len(guest_name) <= 20:
         name_font_size = 28
     elif len(guest_name) <= 28:
@@ -156,7 +167,7 @@ def generate_ticket_pdf(ticket) -> bytes:
 
     c.setFillColor(name_color)
     c.setFont('Helvetica-BoldOblique', name_font_size)
-    c.drawString(22 * mm, 27 * mm, guest_name[:35])
+    c.drawString(22 * mm, 24 * mm, guest_name[:35])
 
     # ════════════════════════════════════════════════════════════════
     # QR CODE — overlaid on stub (right panel) replacing barcode area
@@ -169,9 +180,9 @@ def generate_ticket_pdf(ticket) -> bytes:
     stub_w = PAGE_W - stub_x
 
     qr_bytes = generate_qr_image(ticket.qr_token, size=6)
-    qr_sz = 38 * mm
+    qr_sz = 34 * mm
     qr_x = stub_x + (stub_w - qr_sz) / 2
-    qr_y = PAGE_H / 2 - qr_sz / 2 - 5 * mm
+    qr_y = PAGE_H / 2 - qr_sz / 2 - 12 * mm
 
     # White background behind QR for scannability
     c.setFillColor(WHITE)

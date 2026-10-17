@@ -11,6 +11,34 @@ from django.conf import settings
 
 SITE_URL = 'https://pandoraaward8th.onrender.com'
 
+# ── Ticket physical dimensions ───────────────────────────────────────────────
+# Full ticket : 8.0 × 3.0 inches at 300 DPI
+# Stub        : rightmost ~2.0 inches (25 % of width)
+# QR code     : 1.2 × 1.2 inches, centred in stub QR box
+#
+# ReportLab works in points (1 pt = 1/72 inch)
+PT  = 1.0            # 1 point
+IN  = 72.0           # points per inch
+
+TICKET_W = 8.0 * IN   # 576 pt
+TICKET_H = 3.0 * IN   # 216 pt
+
+# Stub occupies the right 25 % (~2 in) of the ticket
+STUB_X_PCT  = 0.755    # stub left edge  ≈ 76 % from left
+STUB_W_PCT  = 0.245    # stub width      ≈ 24.5 %
+
+# QR placeholder centre inside the stub (measured from image)
+# x: centred on stub   y: ~55 % from top of ticket
+QR_CX_PCT   = 0.875   # 87.5 % of ticket width
+QR_CY_PCT   = 0.50    # 50 %  of ticket height  (middle of stub)
+QR_SIZE_IN  = 1.2     # inches
+QR_SIZE_PT  = QR_SIZE_IN * IN   # 86.4 pt
+
+# Guest name strip (TICKET HOLDER area)
+# x: ~12 % from left   y: ~82 % from top  → ~18 % from bottom
+NAME_X_PCT  = 0.12
+NAME_Y_PCT  = 0.18    # % from BOTTOM (ReportLab y=0 is bottom)
+
 
 # ---------------------------------------------------------------------------
 # IP Address helper
@@ -27,13 +55,14 @@ def get_client_ip(request):
 # QR Code generation
 # ---------------------------------------------------------------------------
 
-def generate_qr_image(qr_token: str, size: int = 8) -> bytes:
+def generate_qr_image(qr_token: str, size: int = 10) -> bytes:
+    """Generate QR PNG encoding the full live verify URL."""
     verify_url = f"{SITE_URL}/verify/qr/{qr_token}/"
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_H,
         box_size=size,
-        border=1,
+        border=2,
     )
     qr.add_data(verify_url)
     qr.make(fit=True)
@@ -58,82 +87,41 @@ def save_qr_to_file(ticket) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Ticket type → background image + text colour
-# New clean images: no sample name, no barcode — ready for overlay
+# Ticket type → background PNG + name text colour
 # ---------------------------------------------------------------------------
 
 TICKET_CONFIG = {
     'REGULAR': {
-        'bg':              'REGULAR.jpeg',
-        'name_color':      '#1a0e00',       # dark on white bg
-        'name_x':          22,
-        'name_y':          32,
-        'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  95,
-        'qr_size_mm':      28,
+        'bg':         'REGULAR (1).PNG',
+        'name_color': '#1a0e00',          # dark on white/cream bg
     },
     'VIP': {
-        'bg':              'VIP.jpeg',
-        'name_color':      '#c9960c',
-        'name_x':          22,
-        'name_y':          32,
-        'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  95,
-        'qr_size_mm':      28,
+        'bg':         'VIP.PNG',
+        'name_color': '#c9960c',          # gold on black bg
     },
     'SPECIAL GUEST SEAT': {
-        'bg':              'SPECIAL TABLE.jpeg',
-        'name_color':      '#c9960c',
-        'name_x':          22,
-        'name_y':          32,
-        'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  95,
-        'qr_size_mm':      28,
+        'bg':         'SPECIAL .PNG',
+        'name_color': '#c9960c',          # gold on green bg
     },
     'SPECIAL GUEST': {
-        'bg':              'SPECIAL TABLE.jpeg',
-        'name_color':      '#c9960c',
-        'name_x':          22,
-        'name_y':          32,
-        'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  95,
-        'qr_size_mm':      28,
-    },
-    'GOLD TABLE': {
-        'bg':              'TABLE OF TEN.jpeg',
-        'name_color':      '#c9960c',
-        'name_x':          22,
-        'name_y':          32,
-        'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  95,
-        'qr_size_mm':      28,
+        'bg':         'SPECIAL .PNG',
+        'name_color': '#c9960c',
     },
     'TABLE OF TEN': {
-        'bg':              'TABLE OF TEN.jpeg',
-        'name_color':      '#c9960c',
-        'name_x':          22,
-        'name_y':          32,
-        'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  95,
-        'qr_size_mm':      28,
+        'bg':         'TABLE OF TEN.PNG',
+        'name_color': '#c9960c',          # gold on burgundy bg
+    },
+    'GOLD TABLE': {
+        'bg':         'TABLE OF TEN.PNG',
+        'name_color': '#c9960c',
     },
     'MEDIA': {
-        'bg':              'REGULAR.jpeg',
-        'name_color':      '#1a0e00',
-        'name_x':          22,
-        'name_y':          32,
-        'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  95,
-        'qr_size_mm':      28,
+        'bg':         'REGULAR (1).PNG',
+        'name_color': '#1a0e00',
     },
     'STAFF': {
-        'bg':              'REGULAR.jpeg',
-        'name_color':      '#1a0e00',
-        'name_x':          22,
-        'name_y':          32,
-        'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  95,
-        'qr_size_mm':      28,
+        'bg':         'REGULAR (1).PNG',
+        'name_color': '#1a0e00',
     },
 }
 
@@ -141,99 +129,114 @@ DEFAULT_CONFIG = TICKET_CONFIG['REGULAR']
 
 
 # ---------------------------------------------------------------------------
-# PDF Ticket — uses clean background images, overlays name + QR
-# Size: A4 landscape = 297 x 210 mm
+# Photo loader helper
+# ---------------------------------------------------------------------------
+
+def _get_photo_reader(photo_field):
+    from reportlab.lib.utils import ImageReader
+    if not photo_field:
+        return None
+    try:
+        url = photo_field.url
+        if url.startswith('http'):
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=10) as r:
+                return ImageReader(io.BytesIO(r.read()))
+        else:
+            return ImageReader(photo_field.path)
+    except Exception:
+        return None
+
+
+# ---------------------------------------------------------------------------
+# PDF Ticket generator
+#
+# Layout (all measurements in ReportLab points, y=0 at bottom-left):
+#
+#   ┌─────────────────────────────────┬──────────┐
+#   │  MAIN PANEL  (75 %)             │  STUB    │
+#   │                                 │ (25 %)   │
+#   │  [logo] PANDORA AWARDS title    │ [logo]   │
+#   │  ticket-type box | price box    │ category │
+#   │  date / time / venue row        │          │
+#   │  ──────────────────────────     │ [QR BOX] │
+#   │  TICKET HOLDER | _blank_        │          │
+#   │                                 │ ADMIT    │
+#   │  [GUEST NAME overlaid here]     │ 8TH ED.  │
+#   └─────────────────────────────────┴──────────┘
 # ---------------------------------------------------------------------------
 
 def generate_ticket_pdf(ticket) -> bytes:
-    from reportlab.lib.pagesizes import A4, landscape
-    from reportlab.lib.units import mm
+    from reportlab.lib.units import inch
     from reportlab.lib import colors
     from reportlab.lib.utils import ImageReader
     from reportlab.pdfgen import canvas
 
-    PAGE_W, PAGE_H = landscape(A4)   # 297 x 210 mm
-
     ttype = ticket.ticket_type.name.upper()
-    cfg = TICKET_CONFIG.get(ttype, DEFAULT_CONFIG)
+    cfg   = TICKET_CONFIG.get(ttype, DEFAULT_CONFIG)
 
     bg_path = os.path.join(settings.BASE_DIR, 'static', 'img', cfg['bg'])
     name_color = colors.HexColor(cfg['name_color'])
 
     buf = io.BytesIO()
-    c = canvas.Canvas(buf, pagesize=(PAGE_W, PAGE_H))
+    c = canvas.Canvas(buf, pagesize=(TICKET_W, TICKET_H))
 
-    # ── Full background image ────────────────────────────────────────
+    # ── 1. Full-page background PNG ──────────────────────────────────────
     if os.path.exists(bg_path):
         c.drawImage(
             ImageReader(bg_path),
-            0, 0, PAGE_W, PAGE_H,
+            0, 0, TICKET_W, TICKET_H,
             preserveAspectRatio=False,
             mask='auto',
         )
     else:
+        # Fallback plain bg
         c.setFillColor(colors.HexColor('#f5f0e8'))
-        c.rect(0, 0, PAGE_W, PAGE_H, fill=1, stroke=0)
+        c.rect(0, 0, TICKET_W, TICKET_H, fill=1, stroke=0)
 
-    # ════════════════════════════════════════════════════════════════
-    # GUEST NAME — placed in the blank TICKET HOLDER area
-    # The background has "TICKET HOLDER" label — name goes below it
-    # ════════════════════════════════════════════════════════════════
+    # ── 2. Guest name overlay (TICKET HOLDER strip) ─────────────────────
+    # The TICKET HOLDER strip sits near the bottom of the main panel.
+    # Measured from images: x ≈ 12 %, y ≈ 18-22 % from bottom.
+    guest_name = ticket.guest.full_name.upper()
 
-    guest_name = ticket.guest.full_name.upper()  # UPPERCASE like reference
+    # Auto-size font
+    if   len(guest_name) <= 16: name_pt = 22
+    elif len(guest_name) <= 22: name_pt = 18
+    elif len(guest_name) <= 30: name_pt = 15
+    else:                        name_pt = 12
 
-    # Font size based on name length
-    if len(guest_name) <= 16:
-        name_size = 32
-    elif len(guest_name) <= 22:
-        name_size = 26
-    elif len(guest_name) <= 30:
-        name_size = 22
-    else:
-        name_size = 18
+    name_x = TICKET_W * NAME_X_PCT
+    name_y = TICKET_H * NAME_Y_PCT
 
     c.setFillColor(name_color)
-    c.setFont('Helvetica-Bold', name_size)   # Bold, not italic
-    c.drawString(
-        cfg['name_x'] * mm,
-        cfg['name_y'] * mm,
-        guest_name[:40],
-    )
+    c.setFont('Helvetica-Bold', name_pt)
+    c.drawString(name_x, name_y, guest_name[:40])
 
-    # ════════════════════════════════════════════════════════════════
-    # QR CODE — placed inside the white square box on the stub
-    # ════════════════════════════════════════════════════════════════
+    # ── 3. QR code overlay (stub QR placeholder box) ────────────────────
+    # The gold-bordered empty box on the stub.
+    # Centre: x ≈ 87.5 % of ticket width, y ≈ 50 % of ticket height.
+    qr_cx = TICKET_W * QR_CX_PCT
+    qr_cy = TICKET_H * QR_CY_PCT
+    qr_x  = qr_cx - QR_SIZE_PT / 2
+    qr_y  = qr_cy - QR_SIZE_PT / 2
 
-    qr_sz = cfg['qr_size_mm'] * mm
-    qr_cx = PAGE_W * cfg['qr_center_x_pct']
-    qr_cy = cfg['qr_center_y_mm'] * mm
-
-    qr_x = qr_cx - qr_sz / 2
-    qr_y = qr_cy - qr_sz / 2
-
-    qr_bytes = generate_qr_image(ticket.qr_token, size=6)
+    qr_bytes = generate_qr_image(ticket.qr_token, size=10)
     c.drawImage(
         ImageReader(io.BytesIO(qr_bytes)),
-        qr_x, qr_y, qr_sz, qr_sz,
+        qr_x, qr_y,
+        QR_SIZE_PT, QR_SIZE_PT,
     )
 
-    # Ticket number — small text above QR so it doesn't overlap "ADMIT ONE"
-    c.setFillColor(colors.HexColor(cfg['name_color']))
+    # ── 4. Ticket number — small text just below QR ──────────────────────
+    c.setFillColor(name_color)
     c.setFont('Helvetica-Bold', 6)
-    c.drawCentredString(
-        qr_cx,
-        qr_y - 4 * mm,
-        ticket.ticket_number,
-    )
+    c.drawCentredString(qr_cx, qr_y - 8, ticket.ticket_number)
 
     c.save()
     return buf.getvalue()
 
 
 def _draw_photo_placeholder(c, x, y, w, h):
-    from reportlab.lib import colors as _colors
-    c.setFillColor(_colors.HexColor('#eeeeee'))
+    from reportlab.lib import colors as _c
+    c.setFillColor(_c.HexColor('#eeeeee'))
     c.rect(x, y, w, h, fill=1, stroke=0)
-    c.setFillColor(_colors.HexColor('#999999'))
-    c.setFont('Helvetica', 7)
-    c.drawCentredString(x + w / 2, y + h / 2, 'PHOTO')

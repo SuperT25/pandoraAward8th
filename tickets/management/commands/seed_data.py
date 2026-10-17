@@ -55,10 +55,15 @@ class Command(BaseCommand):
             TT.objects.filter(name=remove_name).update(active=False)
             self.stdout.write(f'  — Deactivated ticket type: {remove_name}')
 
-        # Rename Gold Table → Table of Ten
-        renamed = TT.objects.filter(name='Gold Table').update(name='Table of Ten')
-        if renamed:
+        # Rename Gold Table → Table of Ten (only if Table of Ten doesn't exist yet)
+        from tickets.models import TicketType as TT
+        if not TT.objects.filter(name='Table of Ten').exists():
+            TT.objects.filter(name='Gold Table').update(name='Table of Ten')
             self.stdout.write(self.style.SUCCESS('  ✔ Renamed: Gold Table → Table of Ten'))
+        else:
+            # Table of Ten exists — just deactivate any leftover Gold Table
+            TT.objects.filter(name='Gold Table').update(active=False)
+            self.stdout.write('  — Table of Ten already exists.')
 
         # ── Super admin account ────────────────────────────────────────────
         if not User.objects.filter(username='pandoraadmin').exists():

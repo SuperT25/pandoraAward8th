@@ -65,30 +65,30 @@ def save_qr_to_file(ticket) -> str:
 TICKET_CONFIG = {
     'REGULAR': {
         'bg':         'reg.jpeg',
-        'name_color': '#1a0e00',    # dark on white/cream bg
+        'name_color': '#1a0e00',
         'name_x':     22,
-        'name_y':     28,           # moved up — inside the ticket border
+        'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  105,
-        'qr_size_mm':      32,
+        'qr_center_y_mm':  78,
+        'qr_size_mm':      28,
     },
     'VIP': {
         'bg':         'VIP.jpeg',
-        'name_color': '#c9960c',    # gold on black bg
+        'name_color': '#c9960c',
         'name_x':     22,
         'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  105,
-        'qr_size_mm':      32,
+        'qr_center_y_mm':  78,
+        'qr_size_mm':      28,
     },
     'SPECIAL GUEST SEAT': {
         'bg':         'special.jpeg',
-        'name_color': '#c9960c',    # gold on green bg
+        'name_color': '#c9960c',
         'name_x':     22,
         'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  105,
-        'qr_size_mm':      32,
+        'qr_center_y_mm':  78,
+        'qr_size_mm':      28,
     },
     'SPECIAL GUEST': {
         'bg':         'special.jpeg',
@@ -96,17 +96,17 @@ TICKET_CONFIG = {
         'name_x':     22,
         'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  105,
-        'qr_size_mm':      32,
+        'qr_center_y_mm':  78,
+        'qr_size_mm':      28,
     },
     'GOLD TABLE': {
         'bg':         'table.jpeg',
-        'name_color': '#c9960c',    # gold on dark purple bg
+        'name_color': '#c9960c',
         'name_x':     22,
         'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  105,
-        'qr_size_mm':      32,
+        'qr_center_y_mm':  78,
+        'qr_size_mm':      28,
     },
     'MEDIA': {
         'bg':         'reg.jpeg',
@@ -114,8 +114,8 @@ TICKET_CONFIG = {
         'name_x':     22,
         'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  105,
-        'qr_size_mm':      32,
+        'qr_center_y_mm':  78,
+        'qr_size_mm':      28,
     },
     'STAFF': {
         'bg':         'reg.jpeg',
@@ -123,8 +123,8 @@ TICKET_CONFIG = {
         'name_x':     22,
         'name_y':     28,
         'qr_center_x_pct': 0.875,
-        'qr_center_y_mm':  105,
-        'qr_size_mm':      32,
+        'qr_center_y_mm':  78,
+        'qr_size_mm':      28,
     },
 }
 

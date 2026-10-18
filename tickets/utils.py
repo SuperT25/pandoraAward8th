@@ -237,11 +237,6 @@ def generate_ticket_pdf(ticket) -> bytes:
         QR_W_PT, QR_H_PT,
     )
 
-    # Ticket number — small text just below QR
-    c.setFillColor(name_color)
-    c.setFont('Helvetica-Bold', 6)
-    c.drawCentredString(qr_cx, qr_y - 8, ticket.ticket_number)
-
     c.save()
     return buf.getvalue()
 

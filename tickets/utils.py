@@ -32,8 +32,8 @@ STUB_W_PCT  = 0.245    # stub width
 # y: ~50% of ticket height (middle of stub between category and SCAN TO VALIDATE)
 QR_CX_PCT   = 0.840   # 84% of ticket width
 QR_CY_PCT   = 0.50    # 50% of ticket height
-QR_SIZE_IN  = 1.0     # inches (reduced from 1.2)
-QR_SIZE_PT  = QR_SIZE_IN * IN   # 72 pt
+QR_SIZE_IN  = 0.75    # inches — reduced further
+QR_SIZE_PT  = QR_SIZE_IN * IN   # 54 pt
 
 # Guest name strip (TICKET HOLDER area)
 # x: ~14% from left   y: ~14% from bottom (inside the strip, not outside)
@@ -200,11 +200,11 @@ def generate_ticket_pdf(ticket) -> bytes:
     # Measured from images: x ≈ 12 %, y ≈ 18-22 % from bottom.
     guest_name = ticket.guest.full_name.upper()
 
-    # Auto-size font — smaller than before
-    if   len(guest_name) <= 16: name_pt = 16
-    elif len(guest_name) <= 22: name_pt = 14
-    elif len(guest_name) <= 30: name_pt = 12
-    else:                        name_pt = 10
+    # Auto-size font — smaller
+    if   len(guest_name) <= 16: name_pt = 13
+    elif len(guest_name) <= 22: name_pt = 11
+    elif len(guest_name) <= 30: name_pt = 9
+    else:                        name_pt = 8
 
     name_x = TICKET_W * NAME_X_PCT
     name_y = TICKET_H * NAME_Y_PCT

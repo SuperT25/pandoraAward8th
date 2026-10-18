@@ -114,12 +114,12 @@ TICKET_CONFIG = {
     'VIP': {
         'bg':         'VIP.PNG',
         'name_color': '#c9960c',
-        'name_font_max': 11,        # smaller font — 3 VIP/Special/Table
-        # QR box: 241×158px recommended. DPI: 192h × 288v
+        'name_font_max': 11,
+        # QR box is square — use 0.549in × 0.549in
         'qr_cx_pct':  0.858,
         'qr_cy_pct':  0.420,
-        'qr_w_in':    1.255,   # 241/192
-        'qr_h_in':    0.549,   # 158/288
+        'qr_w_in':    0.549,
+        'qr_h_in':    0.549,
     },
     'SPECIAL GUEST SEAT': {
         'bg':         'SPECIAL .PNG',

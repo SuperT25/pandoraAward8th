@@ -115,40 +115,40 @@ TICKET_CONFIG = {
         'bg':         'VIP.PNG',
         'name_color': '#c9960c',
         'name_font_max': 11,
-        # QR box is square — use 0.549in × 0.549in
+        # Square QR — max usable area 105×105px (0.547×0.547in)
         'qr_cx_pct':  0.858,
-        'qr_cy_pct':  0.420,
-        'qr_w_in':    0.549,
-        'qr_h_in':    0.549,
+        'qr_cy_pct':  0.480,
+        'qr_w_in':    0.547,
+        'qr_h_in':    0.547,
     },
     'SPECIAL GUEST SEAT': {
         'bg':         'SPECIAL .PNG',
         'name_color': '#c9960c',
         'name_font_max': 11,
-        # QR box: 210×180px recommended — tuned to sit inside gold frame
+        # Square QR — max usable area 92×92px (0.479×0.479in)
         'qr_cx_pct':  0.858,
-        'qr_cy_pct':  0.490,    # dialed back from 0.540 (was too high)
-        'qr_w_in':    1.094,   # 210/192
-        'qr_h_in':    0.625,   # 180/288
+        'qr_cy_pct':  0.490,
+        'qr_w_in':    0.479,
+        'qr_h_in':    0.479,
     },
     'SPECIAL GUEST': {
         'bg':         'SPECIAL .PNG',
         'name_color': '#c9960c',
         'name_font_max': 11,
         'qr_cx_pct':  0.858,
-        'qr_cy_pct':  0.490,    # dialed back from 0.540 (was too high)
-        'qr_w_in':    1.094,
-        'qr_h_in':    0.625,
+        'qr_cy_pct':  0.490,
+        'qr_w_in':    0.479,
+        'qr_h_in':    0.479,
     },
     'TABLE OF TEN': {
         'bg':         'TABLE OF TEN.PNG',
         'name_color': '#c9960c',
         'name_font_max': 11,
-        # QR slightly enlarged to better fill the gold frame
+        # Square QR — max usable area 83×83px (0.432×0.432in)
         'qr_cx_pct':  0.858,
         'qr_cy_pct':  0.460,
-        'qr_w_in':    1.200,   # increased from 1.099
-        'qr_h_in':    0.600,   # increased from 0.524
+        'qr_w_in':    0.432,
+        'qr_h_in':    0.432,
     },
     'GOLD TABLE': {
         'bg':         'TABLE OF TEN.PNG',
@@ -156,8 +156,8 @@ TICKET_CONFIG = {
         'name_font_max': 11,
         'qr_cx_pct':  0.858,
         'qr_cy_pct':  0.460,
-        'qr_w_in':    1.200,   # increased from 1.099
-        'qr_h_in':    0.600,   # increased from 0.524
+        'qr_w_in':    0.432,
+        'qr_h_in':    0.432,
     },
     'MEDIA': {
         'bg':         'REGULAR (1).PNG',

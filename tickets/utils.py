@@ -30,13 +30,15 @@ STUB_W_PCT  = 0.245    # stub width
 # QR placeholder centre inside the gold-bordered box on stub
 # x: ~84% of ticket width (inside stub, not too far right)
 # y: ~50% of ticket height (middle of stub between category and SCAN TO VALIDATE)
-# QR placeholder — exact position calculated from pixel coordinates
+# QR placeholder — exact position from pixel measurements
 # Image: 1536 × 864 px  Box top-left: (1205, 432)  Box size: 220 × 190 px
 # Box centre: (1315, 527 px)
-# X%: 1315/1536 = 85.6%   Y from bottom%: (864-527)/864 = 39.0%
+# X%: 1315/1536 = 85.6%   Y from bottom: (864-527)/864 = 39.0%
+# QR fills the box exactly: 220/192 = 1.146in wide, 190/192 = 0.99in tall
+# Use the smaller dimension to keep QR square and fill the box
 QR_CX_PCT   = 0.856
-QR_CY_PCT   = 0.390
-QR_SIZE_IN  = 0.65    # slightly smaller than box (0.733in) to leave scanning border
+QR_CY_PCT   = 0.395
+QR_SIZE_IN  = 0.99    # fills the gold box completely
 QR_SIZE_PT  = QR_SIZE_IN * IN
 
 # Guest name strip (TICKET HOLDER area)

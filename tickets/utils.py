@@ -103,35 +103,74 @@ def save_qr_to_file(ticket) -> str:
 TICKET_CONFIG = {
     'REGULAR': {
         'bg':         'REGULAR (1).PNG',
-        'name_color': '#1a0e00',          # dark on white/cream bg
+        'name_color': '#1a0e00',
+        # QR box: 226×185px on 1536×864. Top-left:(1205,432). Centre:(1318,524.5)
+        # DPI: 192h × 288v
+        'qr_cx_pct':  0.858,
+        'qr_cy_pct':  0.393,
+        'qr_w_in':    1.177,
+        'qr_h_in':    0.642,
     },
     'VIP': {
         'bg':         'VIP.PNG',
-        'name_color': '#c9960c',          # gold on black bg
+        'name_color': '#c9960c',
+        # QR box: 230×165px (ratio 1.39:1). Same x position as Regular.
+        # Y slightly higher — VIP layout has box more centred vertically
+        'qr_cx_pct':  0.858,
+        'qr_cy_pct':  0.420,
+        'qr_w_in':    1.198,   # 230/192
+        'qr_h_in':    0.573,   # 165/288
     },
     'SPECIAL GUEST SEAT': {
         'bg':         'SPECIAL .PNG',
-        'name_color': '#c9960c',          # gold on green bg
+        'name_color': '#c9960c',
+        # QR box: ratio 1.15:1 — slightly wider than tall
+        # Use square QR centred inside frame with margin
+        'qr_cx_pct':  0.858,
+        'qr_cy_pct':  0.400,
+        'qr_w_in':    1.150,
+        'qr_h_in':    0.650,
     },
     'SPECIAL GUEST': {
         'bg':         'SPECIAL .PNG',
         'name_color': '#c9960c',
+        'qr_cx_pct':  0.858,
+        'qr_cy_pct':  0.400,
+        'qr_w_in':    1.150,
+        'qr_h_in':    0.650,
     },
     'TABLE OF TEN': {
         'bg':         'TABLE OF TEN.PNG',
-        'name_color': '#c9960c',          # gold on burgundy bg
+        'name_color': '#c9960c',
+        # QR box: ratio 1.1:1 — nearly square
+        'qr_cx_pct':  0.858,
+        'qr_cy_pct':  0.400,
+        'qr_w_in':    1.100,
+        'qr_h_in':    0.660,
     },
     'GOLD TABLE': {
         'bg':         'TABLE OF TEN.PNG',
         'name_color': '#c9960c',
+        'qr_cx_pct':  0.858,
+        'qr_cy_pct':  0.400,
+        'qr_w_in':    1.100,
+        'qr_h_in':    0.660,
     },
     'MEDIA': {
         'bg':         'REGULAR (1).PNG',
         'name_color': '#1a0e00',
+        'qr_cx_pct':  0.858,
+        'qr_cy_pct':  0.393,
+        'qr_w_in':    1.177,
+        'qr_h_in':    0.642,
     },
     'STAFF': {
         'bg':         'REGULAR (1).PNG',
         'name_color': '#1a0e00',
+        'qr_cx_pct':  0.858,
+        'qr_cy_pct':  0.393,
+        'qr_w_in':    1.177,
+        'qr_h_in':    0.642,
     },
 }
 
@@ -185,8 +224,14 @@ def generate_ticket_pdf(ticket) -> bytes:
     ttype = ticket.ticket_type.name.upper()
     cfg   = TICKET_CONFIG.get(ttype, DEFAULT_CONFIG)
 
-    bg_path = os.path.join(settings.BASE_DIR, 'static', 'img', cfg['bg'])
+    bg_path    = os.path.join(settings.BASE_DIR, 'static', 'img', cfg['bg'])
     name_color = colors.HexColor(cfg['name_color'])
+
+    # Per-ticket QR box settings
+    qr_cx_pct = cfg.get('qr_cx_pct', QR_CX_PCT)
+    qr_cy_pct = cfg.get('qr_cy_pct', QR_CY_PCT)
+    qr_w_pt   = cfg.get('qr_w_in', 1.177) * IN
+    qr_h_pt   = cfg.get('qr_h_in', 0.642) * IN
 
     buf = io.BytesIO()
     c = canvas.Canvas(buf, pagesize=(TICKET_W, TICKET_H))
@@ -225,16 +270,16 @@ def generate_ticket_pdf(ticket) -> bytes:
     # ── 3. QR code overlay (stub QR placeholder box) ────────────────────
     # The gold-bordered empty box on the stub.
     # Centre: x ≈ 87.5 % of ticket width, y ≈ 50 % of ticket height.
-    qr_cx = TICKET_W * QR_CX_PCT
-    qr_cy = TICKET_H * QR_CY_PCT
-    qr_x  = qr_cx - QR_W_PT / 2
-    qr_y  = qr_cy - QR_H_PT / 2
+    qr_cx = TICKET_W * qr_cx_pct
+    qr_cy = TICKET_H * qr_cy_pct
+    qr_x  = qr_cx - qr_w_pt / 2
+    qr_y  = qr_cy - qr_h_pt / 2
 
     qr_bytes = generate_qr_image(ticket.qr_token, size=10)
     c.drawImage(
         ImageReader(io.BytesIO(qr_bytes)),
         qr_x, qr_y,
-        QR_W_PT, QR_H_PT,
+        qr_w_pt, qr_h_pt,
     )
 
     c.save()

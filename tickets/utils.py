@@ -125,9 +125,9 @@ TICKET_CONFIG = {
         'bg':         'SPECIAL .PNG',
         'name_color': '#c9960c',
         'name_font_max': 11,
-        # QR box: 210×180px recommended — shifted up to sit inside gold frame
+        # QR box: 210×180px recommended — tuned to sit inside gold frame
         'qr_cx_pct':  0.858,
-        'qr_cy_pct':  0.540,    # moved up from 0.460
+        'qr_cy_pct':  0.490,    # dialed back from 0.540 (was too high)
         'qr_w_in':    1.094,   # 210/192
         'qr_h_in':    0.625,   # 180/288
     },
@@ -136,7 +136,7 @@ TICKET_CONFIG = {
         'name_color': '#c9960c',
         'name_font_max': 11,
         'qr_cx_pct':  0.858,
-        'qr_cy_pct':  0.540,    # moved up from 0.460
+        'qr_cy_pct':  0.490,    # dialed back from 0.540 (was too high)
         'qr_w_in':    1.094,
         'qr_h_in':    0.625,
     },

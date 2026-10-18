@@ -114,47 +114,50 @@ TICKET_CONFIG = {
     'VIP': {
         'bg':         'VIP.PNG',
         'name_color': '#c9960c',
-        # QR box: 230×165px (ratio 1.39:1). Same x position as Regular.
-        # Y slightly higher — VIP layout has box more centred vertically
+        'name_font_max': 11,        # smaller font — 3 VIP/Special/Table
+        # QR box: 241×158px recommended. DPI: 192h × 288v
         'qr_cx_pct':  0.858,
         'qr_cy_pct':  0.420,
-        'qr_w_in':    1.198,   # 230/192
-        'qr_h_in':    0.573,   # 165/288
+        'qr_w_in':    1.255,   # 241/192
+        'qr_h_in':    0.549,   # 158/288
     },
     'SPECIAL GUEST SEAT': {
         'bg':         'SPECIAL .PNG',
         'name_color': '#c9960c',
-        # QR box: ratio 1.15:1 — slightly wider than tall
-        # Use square QR centred inside frame with margin
+        'name_font_max': 11,
+        # QR box: 210×180px recommended
         'qr_cx_pct':  0.858,
         'qr_cy_pct':  0.400,
-        'qr_w_in':    1.150,
-        'qr_h_in':    0.650,
+        'qr_w_in':    1.094,   # 210/192
+        'qr_h_in':    0.625,   # 180/288
     },
     'SPECIAL GUEST': {
         'bg':         'SPECIAL .PNG',
         'name_color': '#c9960c',
+        'name_font_max': 11,
         'qr_cx_pct':  0.858,
         'qr_cy_pct':  0.400,
-        'qr_w_in':    1.150,
-        'qr_h_in':    0.650,
+        'qr_w_in':    1.094,
+        'qr_h_in':    0.625,
     },
     'TABLE OF TEN': {
         'bg':         'TABLE OF TEN.PNG',
         'name_color': '#c9960c',
-        # QR box: ratio 1.1:1 — nearly square
+        'name_font_max': 11,
+        # QR box: 211×151px recommended
         'qr_cx_pct':  0.858,
         'qr_cy_pct':  0.400,
-        'qr_w_in':    1.100,
-        'qr_h_in':    0.660,
+        'qr_w_in':    1.099,   # 211/192
+        'qr_h_in':    0.524,   # 151/288
     },
     'GOLD TABLE': {
         'bg':         'TABLE OF TEN.PNG',
         'name_color': '#c9960c',
+        'name_font_max': 11,
         'qr_cx_pct':  0.858,
         'qr_cy_pct':  0.400,
-        'qr_w_in':    1.100,
-        'qr_h_in':    0.660,
+        'qr_w_in':    1.099,
+        'qr_h_in':    0.524,
     },
     'MEDIA': {
         'bg':         'REGULAR (1).PNG',
@@ -254,11 +257,12 @@ def generate_ticket_pdf(ticket) -> bytes:
     # Measured from images: x ≈ 12 %, y ≈ 18-22 % from bottom.
     guest_name = ticket.guest.full_name.upper()
 
-    # Auto-size font — smaller
-    if   len(guest_name) <= 16: name_pt = 13
-    elif len(guest_name) <= 22: name_pt = 11
-    elif len(guest_name) <= 30: name_pt = 9
-    else:                        name_pt = 8
+    # Use per-ticket max font size (Regular keeps 13pt, others use 11pt)
+    max_pt = cfg.get('name_font_max', 13)
+    if   len(guest_name) <= 16: name_pt = max_pt
+    elif len(guest_name) <= 22: name_pt = max_pt - 2
+    elif len(guest_name) <= 30: name_pt = max_pt - 4
+    else:                        name_pt = max_pt - 5
 
     name_x = TICKET_W * NAME_X_PCT
     name_y = TICKET_H * NAME_Y_PCT

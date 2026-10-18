@@ -125,9 +125,9 @@ TICKET_CONFIG = {
         'bg':         'SPECIAL .PNG',
         'name_color': '#c9960c',
         'name_font_max': 11,
-        # QR box: 210×180px recommended
+        # QR box: 210×180px recommended — shifted up to align inside frame
         'qr_cx_pct':  0.858,
-        'qr_cy_pct':  0.400,
+        'qr_cy_pct':  0.460,    # moved up from 0.400
         'qr_w_in':    1.094,   # 210/192
         'qr_h_in':    0.625,   # 180/288
     },
@@ -136,7 +136,7 @@ TICKET_CONFIG = {
         'name_color': '#c9960c',
         'name_font_max': 11,
         'qr_cx_pct':  0.858,
-        'qr_cy_pct':  0.400,
+        'qr_cy_pct':  0.460,    # moved up from 0.400
         'qr_w_in':    1.094,
         'qr_h_in':    0.625,
     },
@@ -144,9 +144,9 @@ TICKET_CONFIG = {
         'bg':         'TABLE OF TEN.PNG',
         'name_color': '#c9960c',
         'name_font_max': 11,
-        # QR box: 211×151px recommended
+        # QR box: 211×151px recommended — shifted up to align inside frame
         'qr_cx_pct':  0.858,
-        'qr_cy_pct':  0.400,
+        'qr_cy_pct':  0.460,    # moved up from 0.400
         'qr_w_in':    1.099,   # 211/192
         'qr_h_in':    0.524,   # 151/288
     },
@@ -155,7 +155,7 @@ TICKET_CONFIG = {
         'name_color': '#c9960c',
         'name_font_max': 11,
         'qr_cx_pct':  0.858,
-        'qr_cy_pct':  0.400,
+        'qr_cy_pct':  0.460,    # moved up from 0.400
         'qr_w_in':    1.099,
         'qr_h_in':    0.524,
     },

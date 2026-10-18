@@ -144,20 +144,20 @@ TICKET_CONFIG = {
         'bg':         'TABLE OF TEN.PNG',
         'name_color': '#c9960c',
         'name_font_max': 11,
-        # QR box: 211×151px recommended — shifted up to align inside frame
+        # QR slightly enlarged to better fill the gold frame
         'qr_cx_pct':  0.858,
-        'qr_cy_pct':  0.460,    # moved up from 0.400
-        'qr_w_in':    1.099,   # 211/192
-        'qr_h_in':    0.524,   # 151/288
+        'qr_cy_pct':  0.460,
+        'qr_w_in':    1.200,   # increased from 1.099
+        'qr_h_in':    0.600,   # increased from 0.524
     },
     'GOLD TABLE': {
         'bg':         'TABLE OF TEN.PNG',
         'name_color': '#c9960c',
         'name_font_max': 11,
         'qr_cx_pct':  0.858,
-        'qr_cy_pct':  0.460,    # moved up from 0.400
-        'qr_w_in':    1.099,
-        'qr_h_in':    0.524,
+        'qr_cy_pct':  0.460,
+        'qr_w_in':    1.200,   # increased from 1.099
+        'qr_h_in':    0.600,   # increased from 0.524
     },
     'MEDIA': {
         'bg':         'REGULAR (1).PNG',

@@ -30,16 +30,19 @@ STUB_W_PCT  = 0.245    # stub width
 # QR placeholder centre inside the gold-bordered box on stub
 # x: ~84% of ticket width (inside stub, not too far right)
 # y: ~50% of ticket height (middle of stub between category and SCAN TO VALIDATE)
-# QR placeholder — exact position from pixel measurements
-# Image: 1536 × 864 px  Box top-left: (1205, 432)  Box size: 220 × 190 px
-# Box centre: (1315, 527 px)
-# X%: 1315/1536 = 85.6%   Y from bottom: (864-527)/864 = 39.0%
-# QR fills the box exactly: 220/192 = 1.146in wide, 190/192 = 0.99in tall
-# Use the smaller dimension to keep QR square and fill the box
-QR_CX_PCT   = 0.856
-QR_CY_PCT   = 0.395
-QR_SIZE_IN  = 0.99    # fills the gold box completely
-QR_SIZE_PT  = QR_SIZE_IN * IN
+# QR placeholder — rectangular box, 226 × 185 px on 1536 × 864 px image
+# Box top-left: (1205, 432)  Centre: (1318, 524.5 px)
+# X%: 1318/1536 = 85.8%   Y from bottom: (864-524.5)/864 = 39.3%
+# Box dimensions in inches: 226/192=1.177in wide, 185/288=0.642in tall
+# (1536px/8in = 192 DPI horizontal, 864px/3in = 288 DPI vertical)
+QR_CX_PCT   = 0.858
+QR_CY_PCT   = 0.393
+QR_W_IN     = 1.177   # width to fill box exactly
+QR_H_IN     = 0.642   # height to fill box exactly
+QR_W_PT     = QR_W_IN * IN
+QR_H_PT     = QR_H_IN * IN
+# Keep backward compat
+QR_SIZE_PT  = QR_W_PT
 
 # Guest name strip (TICKET HOLDER area)
 # x: ~14% from left   y: ~14% from bottom (inside the strip, not outside)
@@ -224,17 +227,17 @@ def generate_ticket_pdf(ticket) -> bytes:
     # Centre: x ≈ 87.5 % of ticket width, y ≈ 50 % of ticket height.
     qr_cx = TICKET_W * QR_CX_PCT
     qr_cy = TICKET_H * QR_CY_PCT
-    qr_x  = qr_cx - QR_SIZE_PT / 2
-    qr_y  = qr_cy - QR_SIZE_PT / 2
+    qr_x  = qr_cx - QR_W_PT / 2
+    qr_y  = qr_cy - QR_H_PT / 2
 
     qr_bytes = generate_qr_image(ticket.qr_token, size=10)
     c.drawImage(
         ImageReader(io.BytesIO(qr_bytes)),
         qr_x, qr_y,
-        QR_SIZE_PT, QR_SIZE_PT,
+        QR_W_PT, QR_H_PT,
     )
 
-    # ── 4. Ticket number — small text just below QR ──────────────────────
+    # Ticket number — small text just below QR
     c.setFillColor(name_color)
     c.setFont('Helvetica-Bold', 6)
     c.drawCentredString(qr_cx, qr_y - 8, ticket.ticket_number)

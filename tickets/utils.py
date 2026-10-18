@@ -32,8 +32,8 @@ STUB_W_PCT  = 0.245    # stub width
 # y: ~50% of ticket height (middle of stub between category and SCAN TO VALIDATE)
 QR_CX_PCT   = 0.840   # 84% of ticket width
 QR_CY_PCT   = 0.50    # 50% of ticket height
-QR_SIZE_IN  = 0.75    # inches — reduced further
-QR_SIZE_PT  = QR_SIZE_IN * IN   # 54 pt
+QR_SIZE_IN  = 0.55    # inches
+QR_SIZE_PT  = QR_SIZE_IN * IN   # 39.6 pt
 
 # Guest name strip (TICKET HOLDER area)
 # x: ~14% from left   y: ~14% from bottom (inside the strip, not outside)

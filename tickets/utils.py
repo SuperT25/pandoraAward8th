@@ -115,49 +115,52 @@ TICKET_CONFIG = {
         'bg':         'VIP.PNG',
         'name_color': '#c9960c',
         'name_font_max': 11,
-        # Square QR — max usable area 105×105px (0.547×0.547in)
-        'qr_cx_pct':  0.858,
-        'qr_cy_pct':  0.480,
-        'qr_w_in':    0.547,
-        'qr_h_in':    0.547,
+        # QR box pixel-verified: (1667,353)->(1925,520) on 2046x768 image
+        # cx=0.8778, cy_from_bottom=0.4323, max square=0.652in
+        'qr_cx_pct':  0.8778,
+        'qr_cy_pct':  0.4323,
+        'qr_w_in':    0.652,
+        'qr_h_in':    0.652,
     },
     'SPECIAL GUEST SEAT': {
         'bg':         'SPECIAL .PNG',
         'name_color': '#c9960c',
         'name_font_max': 11,
-        # Square QR — max usable area 92×92px (0.479×0.479in)
-        'qr_cx_pct':  0.858,
-        'qr_cy_pct':  0.490,
-        'qr_w_in':    0.479,
-        'qr_h_in':    0.479,
+        # QR box pixel-verified: (1313,419)->(1585,673) on 1671x941 image
+        # cx=0.8671, cy_from_bottom=0.4198, max square=0.810in
+        'qr_cx_pct':  0.8671,
+        'qr_cy_pct':  0.4198,
+        'qr_w_in':    0.810,
+        'qr_h_in':    0.810,
     },
     'SPECIAL GUEST': {
         'bg':         'SPECIAL .PNG',
         'name_color': '#c9960c',
         'name_font_max': 11,
-        'qr_cx_pct':  0.858,
-        'qr_cy_pct':  0.490,
-        'qr_w_in':    0.479,
-        'qr_h_in':    0.479,
+        'qr_cx_pct':  0.8671,
+        'qr_cy_pct':  0.4198,
+        'qr_w_in':    0.810,
+        'qr_h_in':    0.810,
     },
     'TABLE OF TEN': {
         'bg':         'TABLE OF TEN.PNG',
         'name_color': '#c9960c',
         'name_font_max': 11,
-        # Square QR — max usable area 83×83px (0.432×0.432in)
-        'qr_cx_pct':  0.858,
-        'qr_cy_pct':  0.460,
-        'qr_w_in':    0.432,
-        'qr_h_in':    0.432,
+        # QR box pixel-verified: (1258,432)->(1590,657) on 1672x941 image
+        # cx=0.8517, cy_from_bottom=0.4219, max square=0.717in
+        'qr_cx_pct':  0.8517,
+        'qr_cy_pct':  0.4219,
+        'qr_w_in':    0.717,
+        'qr_h_in':    0.717,
     },
     'GOLD TABLE': {
         'bg':         'TABLE OF TEN.PNG',
         'name_color': '#c9960c',
         'name_font_max': 11,
-        'qr_cx_pct':  0.858,
-        'qr_cy_pct':  0.460,
-        'qr_w_in':    0.432,
-        'qr_h_in':    0.432,
+        'qr_cx_pct':  0.8517,
+        'qr_cy_pct':  0.4219,
+        'qr_w_in':    0.717,
+        'qr_h_in':    0.717,
     },
     'MEDIA': {
         'bg':         'REGULAR (1).PNG',

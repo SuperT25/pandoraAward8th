@@ -12,9 +12,9 @@ from django.conf import settings
 SITE_URL = 'https://pandoraaward8th.onrender.com'
 
 # ── Ticket physical dimensions ───────────────────────────────────────────────
-# Full ticket : 8.0 × 3.0 inches at 300 DPI
-# Stub        : rightmost ~2.0 inches (25 % of width)
-# QR code     : 1.2 × 1.2 inches, centred in stub QR box
+# Full ticket : 8.0 × 3.0 inches at ~209 DPI  (new poster images are 1670×941 px)
+# Stub        : rightmost ~25% of width (separator dashes ~x=1115 on 1670px)
+# QR code     : overlaid on 'QR CODE WILL BE GENERATED IN THE APP' area in stub
 #
 # ReportLab works in points (1 pt = 1/72 inch)
 PT  = 1.0            # 1 point
@@ -23,29 +23,23 @@ IN  = 72.0           # points per inch
 TICKET_W = 8.0 * IN   # 576 pt
 TICKET_H = 3.0 * IN   # 216 pt
 
+# Pixel-to-percent conversion for 1670×941 images:
+#   x_pct = px / 1670    y_pct_from_bottom = (941 - y_from_top) / 941
+
 # Stub occupies the right 25 % (~2 in) of the ticket
 STUB_X_PCT  = 0.755    # stub left edge
 STUB_W_PCT  = 0.245    # stub width
 
-# QR placeholder centre inside the gold-bordered box on stub
-# x: ~84% of ticket width (inside stub, not too far right)
-# y: ~50% of ticket height (middle of stub between category and SCAN TO VALIDATE)
-# QR placeholder — rectangular box, 226 × 185 px on 1536 × 864 px image
-# Box top-left: (1205, 432)  Centre: (1318, 524.5 px)
-# X%: 1318/1536 = 85.8%   Y from bottom: (864-524.5)/864 = 39.3%
-# Box dimensions in inches: 226/192=1.177in wide, 185/288=0.642in tall
-# (1536px/8in = 192 DPI horizontal, 864px/3in = 288 DPI vertical)
+# Global QR / name defaults (used only when a config entry omits these keys)
 QR_CX_PCT   = 0.858
 QR_CY_PCT   = 0.393
-QR_W_IN     = 1.177   # width to fill box exactly
-QR_H_IN     = 0.642   # height to fill box exactly
+QR_W_IN     = 1.177
+QR_H_IN     = 0.642
 QR_W_PT     = QR_W_IN * IN
 QR_H_PT     = QR_H_IN * IN
-# Keep backward compat
-QR_SIZE_PT  = QR_W_PT
+QR_SIZE_PT  = QR_W_PT  # backward compat
 
-# Guest name strip (TICKET HOLDER area)
-# x: ~14% from left   y: ~14% from bottom (inside the strip, not outside)
+# Global name-strip defaults
 NAME_X_PCT  = 0.14
 NAME_Y_PCT  = 0.14    # % from BOTTOM
 
@@ -101,82 +95,122 @@ def save_qr_to_file(ticket) -> str:
 # ---------------------------------------------------------------------------
 
 TICKET_CONFIG = {
+    # ── REGULAR ──────────────────────────────────────────────────────────────
+    # Background unchanged (no live_test version produced for this tier)
     'REGULAR': {
-        'bg':         'REGULAR (1).PNG',
-        'name_color': '#1a0e00',
+        'bg':            'REGULAR (1).PNG',
+        'name_color':    '#1a0e00',
         # QR box: 226×185px on 1536×864. Top-left:(1205,432). Centre:(1318,524.5)
         # DPI: 192h × 288v
-        'qr_cx_pct':  0.858,
-        'qr_cy_pct':  0.393,
-        'qr_w_in':    1.177,
-        'qr_h_in':    0.642,
+        'qr_cx_pct':     0.858,
+        'qr_cy_pct':     0.393,
+        'qr_w_in':       1.177,
+        'qr_h_in':       0.642,
+        'name_x_pct':    0.14,
+        'name_y_pct':    0.14,
     },
+
+    # ── VIP ───────────────────────────────────────────────────────────────────
+    # VIP.jpeg — 1280×720 px (black/gold)
+    # Stub separator (dashed line) ~x=950, stub centre x=1115
+    # QR area: between 'VIP TICKET' label (~y=340) and 'ADMIT ONE' text (~y=530)
+    #   cx=1115/1280=0.8711  cy_from_top=435 → cy_from_bottom=(720-435)/720=0.3958
+    #   180px square → w_in=180/(1280/8)=1.125  h_in=180/(720/3)=0.750
+    # Name strip: gold bar under 'TICKET HOLDER', x≈210px→0.1641  y_from_top≈610→0.1528 from bottom
     'VIP': {
-        'bg':         'VIP.PNG',
-        'name_color': '#c9960c',
+        'bg':            'VIP.jpeg',
+        'name_color':    '#c9960c',
         'name_font_max': 11,
-        # QR box pixel-verified: (1667,353)->(1925,520) on 2046x768 image
-        # cx=0.8778, cy_from_bottom=0.4323, max square=0.652in
-        'qr_cx_pct':  0.8778,
-        'qr_cy_pct':  0.4323,
-        'qr_w_in':    0.652,
-        'qr_h_in':    0.652,
+        'qr_cx_pct':     0.8711,
+        'qr_cy_pct':     0.3958,
+        'qr_w_in':       1.125,
+        'qr_h_in':       0.750,
+        'name_x_pct':    0.1641,
+        'name_y_pct':    0.1528,
     },
-    'SPECIAL GUEST SEAT': {
-        'bg':         'SPECIAL .PNG',
-        'name_color': '#c9960c',
-        'name_font_max': 11,
-        # QR box pixel-verified: (1313,419)->(1585,673) on 1671x941 image
-        # cx=0.8671, cy_from_bottom=0.4198, max square=0.810in
-        'qr_cx_pct':  0.8671,
-        'qr_cy_pct':  0.4198,
-        'qr_w_in':    0.810,
-        'qr_h_in':    0.810,
-    },
+
+    # ── SPECIAL GUEST ────────────────────────────────────────────────────────
+    # Pandora Awards SPecial guestTicket Poster.png — 1670×941 px (dark green/gold)
+    # Stub separator ~x=1115, stub centre x=1392
+    # QR area: 'QR CODE WILL BE GENERATED IN THE APP' block, centre y≈535 from top
+    #   cx=1392px → 0.8335   cy_from_bottom=(941-535)/941=0.4315
+    #   size 200px → w_in=0.958  h_in=0.638
+    # Name strip: x≈230px→0.1377  y_from_top≈820→0.1286 from bottom
     'SPECIAL GUEST': {
-        'bg':         'SPECIAL .PNG',
-        'name_color': '#c9960c',
+        'bg':            'Pandora Awards SPecial guestTicket Poster.png',
+        'name_color':    '#c9960c',
         'name_font_max': 11,
-        'qr_cx_pct':  0.8671,
-        'qr_cy_pct':  0.4198,
-        'qr_w_in':    0.810,
-        'qr_h_in':    0.810,
+        'qr_cx_pct':     0.8335,
+        'qr_cy_pct':     0.4315,
+        'qr_w_in':       0.958,
+        'qr_h_in':       0.638,
+        'name_x_pct':    0.1377,
+        'name_y_pct':    0.1286,
     },
+    # Alias — same design
+    'SPECIAL GUEST SEAT': {
+        'bg':            'Pandora Awards SPecial guestTicket Poster.png',
+        'name_color':    '#c9960c',
+        'name_font_max': 11,
+        'qr_cx_pct':     0.8335,
+        'qr_cy_pct':     0.4315,
+        'qr_w_in':       0.958,
+        'qr_h_in':       0.638,
+        'name_x_pct':    0.1377,
+        'name_y_pct':    0.1286,
+    },
+
+    # ── TABLE OF TEN ─────────────────────────────────────────────────────────
+    # Pandora Awards Table for Ten Ticket.png — 1672×941 px (maroon/gold)
+    # Same layout as Special Guest — stub centre x=1392
+    # QR area: centre y≈535 from top
+    #   cx=1392/1672=0.8325  cy_from_bottom=(941-535)/941=0.4315
+    #   size 200px → w_in=200/(1672/8)=0.957  h_in=200/(941/3)=0.638
+    # Name strip: x≈230/1672=0.1376  y_from_bottom=(941-820)/941=0.1286
     'TABLE OF TEN': {
-        'bg':         'TABLE OF TEN.PNG',
-        'name_color': '#c9960c',
+        'bg':            'Pandora Awards Table for Ten Ticket.png',
+        'name_color':    '#c9960c',
         'name_font_max': 11,
-        # QR box pixel-verified: (1258,432)->(1590,657) on 1672x941 image
-        # cx=0.8517, cy_from_bottom=0.4219, max square=0.717in
-        'qr_cx_pct':  0.8517,
-        'qr_cy_pct':  0.4219,
-        'qr_w_in':    0.717,
-        'qr_h_in':    0.717,
+        'qr_cx_pct':     0.8325,
+        'qr_cy_pct':     0.4315,
+        'qr_w_in':       0.957,
+        'qr_h_in':       0.638,
+        'name_x_pct':    0.1376,
+        'name_y_pct':    0.1286,
     },
+    # Alias
     'GOLD TABLE': {
-        'bg':         'TABLE OF TEN.PNG',
-        'name_color': '#c9960c',
+        'bg':            'Pandora Awards Table for Ten Ticket.png',
+        'name_color':    '#c9960c',
         'name_font_max': 11,
-        'qr_cx_pct':  0.8517,
-        'qr_cy_pct':  0.4219,
-        'qr_w_in':    0.717,
-        'qr_h_in':    0.717,
+        'qr_cx_pct':     0.8325,
+        'qr_cy_pct':     0.4315,
+        'qr_w_in':       0.957,
+        'qr_h_in':       0.638,
+        'name_x_pct':    0.1376,
+        'name_y_pct':    0.1286,
     },
+
+    # ── MEDIA / STAFF (fall back to REGULAR background) ──────────────────────
     'MEDIA': {
-        'bg':         'REGULAR (1).PNG',
-        'name_color': '#1a0e00',
-        'qr_cx_pct':  0.858,
-        'qr_cy_pct':  0.393,
-        'qr_w_in':    1.177,
-        'qr_h_in':    0.642,
+        'bg':            'REGULAR (1).PNG',
+        'name_color':    '#1a0e00',
+        'qr_cx_pct':     0.858,
+        'qr_cy_pct':     0.393,
+        'qr_w_in':       1.177,
+        'qr_h_in':       0.642,
+        'name_x_pct':    0.14,
+        'name_y_pct':    0.14,
     },
     'STAFF': {
-        'bg':         'REGULAR (1).PNG',
-        'name_color': '#1a0e00',
-        'qr_cx_pct':  0.858,
-        'qr_cy_pct':  0.393,
-        'qr_w_in':    1.177,
-        'qr_h_in':    0.642,
+        'bg':            'REGULAR (1).PNG',
+        'name_color':    '#1a0e00',
+        'qr_cx_pct':     0.858,
+        'qr_cy_pct':     0.393,
+        'qr_w_in':       1.177,
+        'qr_h_in':       0.642,
+        'name_x_pct':    0.14,
+        'name_y_pct':    0.14,
     },
 }
 
@@ -239,16 +273,23 @@ def generate_ticket_pdf(ticket) -> bytes:
     qr_w_pt   = cfg.get('qr_w_in', 1.177) * IN
     qr_h_pt   = cfg.get('qr_h_in', 0.642) * IN
 
+    # Per-ticket name strip position (falls back to global defaults)
+    name_x_pct = cfg.get('name_x_pct', NAME_X_PCT)
+    name_y_pct = cfg.get('name_y_pct', NAME_Y_PCT)
+
     buf = io.BytesIO()
     c = canvas.Canvas(buf, pagesize=(TICKET_W, TICKET_H))
 
-    # ── 1. Full-page background PNG ──────────────────────────────────────
+    # ── 1. Full-page background image ────────────────────────────────────
+    # Use mask='auto' only for PNG (supports alpha); JPEGs have no alpha channel
+    # and mask='auto' causes ReportLab to render them blank.
     if os.path.exists(bg_path):
+        is_png = bg_path.lower().endswith('.png')
         c.drawImage(
             ImageReader(bg_path),
             0, 0, TICKET_W, TICKET_H,
             preserveAspectRatio=False,
-            mask='auto',
+            mask='auto' if is_png else None,
         )
     else:
         # Fallback plain bg
@@ -267,8 +308,8 @@ def generate_ticket_pdf(ticket) -> bytes:
     elif len(guest_name) <= 30: name_pt = max_pt - 4
     else:                        name_pt = max_pt - 5
 
-    name_x = TICKET_W * NAME_X_PCT
-    name_y = TICKET_H * NAME_Y_PCT
+    name_x = TICKET_W * name_x_pct
+    name_y = TICKET_H * name_y_pct
 
     c.setFillColor(name_color)
     c.setFont('Helvetica-Bold', name_pt)

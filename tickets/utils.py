@@ -112,38 +112,36 @@ TICKET_CONFIG = {
 
     # ── VIP ───────────────────────────────────────────────────────────────────
     # VIP.jpeg — 1280×720 px (black/gold)
-    # Stub separator (dashed line) ~x=950, stub centre x=1115
-    # QR area: between 'VIP TICKET' label (~y=340) and 'ADMIT ONE' text (~y=530)
-    #   cx=1115/1280=0.8711  cy_from_top=435 → cy_from_bottom=(720-435)/720=0.3958
-    #   180px square → w_in=180/(1280/8)=1.125  h_in=180/(720/3)=0.750
-    # Name strip: gold bar under 'TICKET HOLDER', x≈210px→0.1641  y_from_top≈610→0.1528 from bottom
+    # PDF is 576x216pt. Stub: x=955-1280px → 429.8-576pt, centre=502.9pt → cx=0.8730
+    # QR space (pt): label_bottom=103.5pt from top, admit_one=159pt from top → 55.5pt space
+    # QR square = 47pt = 0.653in, centred at cy = (103.5+159)/2 = 131.25pt from top
+    # cy_from_bottom = 216-131.25 = 84.75pt → cy_pct = 84.75/216 = 0.3924
+    # Name: gold bar y≈610px from top → (720-610)/720 = 0.1528 from bottom, x=210/1280=0.1641
     'VIP': {
         'bg':            'VIP.jpeg',
         'name_color':    '#c9960c',
-        'name_font_max': 11,
-        'qr_cx_pct':     0.8711,
-        'qr_cy_pct':     0.3958,
-        'qr_w_in':       1.125,
-        'qr_h_in':       0.750,
+        'qr_cx_pct':     0.8730,
+        'qr_cy_pct':     0.3924,
+        'qr_w_in':       0.653,
+        'qr_h_in':       0.653,
         'name_x_pct':    0.1641,
         'name_y_pct':    0.1528,
     },
 
     # ── SPECIAL GUEST ────────────────────────────────────────────────────────
     # Pandora Awards SPecial guestTicket Poster.png — 1670×941 px (dark green/gold)
-    # Stub: x=1115-1670, centre x=1392 → cx_pct=0.8335
-    # QR vertically centred between ticket-type label (~y=380) and SCAN TO VALIDATE (~y=700)
-    #   cy_from_top=540 → cy_from_bottom=(941-540)/941=0.4261
-    #   size: stub width=555px, use 220px square → w_in=220/(1670/8)=1.054  h_in=220/(941/3)=0.702
-    # Name strip: x≈230px→0.1377  y_from_top≈820→0.1286 from bottom
+    # PDF is 576x216pt. Stub: x=1115-1670px → 384.6-576pt, centre=480.3pt → cx=0.8338
+    # QR space (pt): label_bottom=88.4pt from top, scan_validate=159.6pt from top → 71.2pt space
+    # QR square = 60pt = 0.833in, centred at cy = (88.4+159.6)/2 = 124pt from top
+    # cy_from_bottom = 216-124 = 92pt → cy_pct = 92/216 = 0.4259
+    # Name: x=230/1670=0.1377, y_from_top=820 → (941-820)/941=0.1286 from bottom
     'SPECIAL GUEST': {
         'bg':            'Pandora Awards SPecial guestTicket Poster.png',
         'name_color':    '#c9960c',
-        'name_font_max': 11,
-        'qr_cx_pct':     0.8335,
-        'qr_cy_pct':     0.4261,
-        'qr_w_in':       1.054,
-        'qr_h_in':       1.054,
+        'qr_cx_pct':     0.8338,
+        'qr_cy_pct':     0.4259,
+        'qr_w_in':       0.833,
+        'qr_h_in':       0.833,
         'name_x_pct':    0.1377,
         'name_y_pct':    0.1286,
     },
@@ -151,30 +149,28 @@ TICKET_CONFIG = {
     'SPECIAL GUEST SEAT': {
         'bg':            'Pandora Awards SPecial guestTicket Poster.png',
         'name_color':    '#c9960c',
-        'name_font_max': 11,
-        'qr_cx_pct':     0.8335,
-        'qr_cy_pct':     0.4261,
-        'qr_w_in':       1.054,
-        'qr_h_in':       1.054,
+        'qr_cx_pct':     0.8338,
+        'qr_cy_pct':     0.4259,
+        'qr_w_in':       0.833,
+        'qr_h_in':       0.833,
         'name_x_pct':    0.1377,
         'name_y_pct':    0.1286,
     },
 
     # ── TABLE OF TEN ─────────────────────────────────────────────────────────
     # Pandora Awards Table for Ten Ticket.png — 1672×941 px (maroon/gold)
-    # Stub: x=1115-1672, centre x=1394 → cx_pct=0.8345
-    # QR vertically centred between ticket-type label (~y=380) and ADMIT ONE (~y=700)
-    #   cy_from_top=540 → cy_from_bottom=(941-540)/941=0.4261
-    #   size 220px square → w_in=220/(1672/8)=1.053  h_in=220/(941/3)=0.702 → use square 1.053
-    # Name strip: x≈230/1672=0.1376  y_from_bottom=(941-820)/941=0.1286
+    # PDF is 576x216pt. Stub: x=1115-1672px → 384.2-576pt, centre=480.1pt → cx=0.8335
+    # QR space (pt): label_bottom=89.5pt from top, admit_one=159.6pt from top → 70.1pt space
+    # QR square = 60pt = 0.833in, centred at cy = (89.5+159.6)/2 = 124.5pt from top
+    # cy_from_bottom = 216-124.5 = 91.5pt → cy_pct = 91.5/216 = 0.4236
+    # Name: x=230/1672=0.1376, y_from_top=820 → (941-820)/941=0.1286 from bottom
     'TABLE OF TEN': {
         'bg':            'Pandora Awards Table for Ten Ticket.png',
         'name_color':    '#c9960c',
-        'name_font_max': 16,
-        'qr_cx_pct':     0.8345,
-        'qr_cy_pct':     0.4261,
-        'qr_w_in':       1.053,
-        'qr_h_in':       1.053,
+        'qr_cx_pct':     0.8335,
+        'qr_cy_pct':     0.4236,
+        'qr_w_in':       0.833,
+        'qr_h_in':       0.833,
         'name_x_pct':    0.1376,
         'name_y_pct':    0.1286,
     },
@@ -182,11 +178,10 @@ TICKET_CONFIG = {
     'GOLD TABLE': {
         'bg':            'Pandora Awards Table for Ten Ticket.png',
         'name_color':    '#c9960c',
-        'name_font_max': 16,
-        'qr_cx_pct':     0.8345,
-        'qr_cy_pct':     0.4261,
-        'qr_w_in':       1.053,
-        'qr_h_in':       1.053,
+        'qr_cx_pct':     0.8335,
+        'qr_cy_pct':     0.4236,
+        'qr_w_in':       0.833,
+        'qr_h_in':       0.833,
         'name_x_pct':    0.1376,
         'name_y_pct':    0.1286,
     },

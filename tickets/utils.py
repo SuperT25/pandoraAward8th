@@ -131,19 +131,19 @@ TICKET_CONFIG = {
 
     # ── SPECIAL GUEST ────────────────────────────────────────────────────────
     # Pandora Awards SPecial guestTicket Poster.png — 1670×941 px (dark green/gold)
-    # Stub separator ~x=1115, stub centre x=1392
-    # QR area: 'QR CODE WILL BE GENERATED IN THE APP' block, centre y≈535 from top
-    #   cx=1392px → 0.8335   cy_from_bottom=(941-535)/941=0.4315
-    #   size 200px → w_in=0.958  h_in=0.638
+    # Stub: x=1115-1670, centre x=1392 → cx_pct=0.8335
+    # QR vertically centred between ticket-type label (~y=380) and SCAN TO VALIDATE (~y=700)
+    #   cy_from_top=540 → cy_from_bottom=(941-540)/941=0.4261
+    #   size: stub width=555px, use 220px square → w_in=220/(1670/8)=1.054  h_in=220/(941/3)=0.702
     # Name strip: x≈230px→0.1377  y_from_top≈820→0.1286 from bottom
     'SPECIAL GUEST': {
         'bg':            'Pandora Awards SPecial guestTicket Poster.png',
         'name_color':    '#c9960c',
         'name_font_max': 11,
         'qr_cx_pct':     0.8335,
-        'qr_cy_pct':     0.4315,
-        'qr_w_in':       0.958,
-        'qr_h_in':       0.638,
+        'qr_cy_pct':     0.4261,
+        'qr_w_in':       1.054,
+        'qr_h_in':       1.054,
         'name_x_pct':    0.1377,
         'name_y_pct':    0.1286,
     },
@@ -153,28 +153,28 @@ TICKET_CONFIG = {
         'name_color':    '#c9960c',
         'name_font_max': 11,
         'qr_cx_pct':     0.8335,
-        'qr_cy_pct':     0.4315,
-        'qr_w_in':       0.958,
-        'qr_h_in':       0.638,
+        'qr_cy_pct':     0.4261,
+        'qr_w_in':       1.054,
+        'qr_h_in':       1.054,
         'name_x_pct':    0.1377,
         'name_y_pct':    0.1286,
     },
 
     # ── TABLE OF TEN ─────────────────────────────────────────────────────────
     # Pandora Awards Table for Ten Ticket.png — 1672×941 px (maroon/gold)
-    # Same layout as Special Guest — stub centre x=1392
-    # QR area: centre y≈535 from top
-    #   cx=1392/1672=0.8325  cy_from_bottom=(941-535)/941=0.4315
-    #   size 200px → w_in=200/(1672/8)=0.957  h_in=200/(941/3)=0.638
+    # Stub: x=1115-1672, centre x=1394 → cx_pct=0.8345
+    # QR vertically centred between ticket-type label (~y=380) and ADMIT ONE (~y=700)
+    #   cy_from_top=540 → cy_from_bottom=(941-540)/941=0.4261
+    #   size 220px square → w_in=220/(1672/8)=1.053  h_in=220/(941/3)=0.702 → use square 1.053
     # Name strip: x≈230/1672=0.1376  y_from_bottom=(941-820)/941=0.1286
     'TABLE OF TEN': {
         'bg':            'Pandora Awards Table for Ten Ticket.png',
         'name_color':    '#c9960c',
-        'name_font_max': 11,
-        'qr_cx_pct':     0.8325,
-        'qr_cy_pct':     0.4315,
-        'qr_w_in':       0.957,
-        'qr_h_in':       0.638,
+        'name_font_max': 16,
+        'qr_cx_pct':     0.8345,
+        'qr_cy_pct':     0.4261,
+        'qr_w_in':       1.053,
+        'qr_h_in':       1.053,
         'name_x_pct':    0.1376,
         'name_y_pct':    0.1286,
     },
@@ -182,11 +182,11 @@ TICKET_CONFIG = {
     'GOLD TABLE': {
         'bg':            'Pandora Awards Table for Ten Ticket.png',
         'name_color':    '#c9960c',
-        'name_font_max': 11,
-        'qr_cx_pct':     0.8325,
-        'qr_cy_pct':     0.4315,
-        'qr_w_in':       0.957,
-        'qr_h_in':       0.638,
+        'name_font_max': 16,
+        'qr_cx_pct':     0.8345,
+        'qr_cy_pct':     0.4261,
+        'qr_w_in':       1.053,
+        'qr_h_in':       1.053,
         'name_x_pct':    0.1376,
         'name_y_pct':    0.1286,
     },
@@ -297,21 +297,25 @@ def generate_ticket_pdf(ticket) -> bytes:
         c.rect(0, 0, TICKET_W, TICKET_H, fill=1, stroke=0)
 
     # ── 2. Guest name overlay (TICKET HOLDER strip) ─────────────────────
-    # The TICKET HOLDER strip sits near the bottom of the main panel.
-    # Measured from images: x ≈ 12 %, y ≈ 18-22 % from bottom.
     guest_name = ticket.guest.full_name.upper()
 
-    # Use per-ticket max font size (Regular keeps 13pt, others use 11pt)
-    max_pt = cfg.get('name_font_max', 13)
-    if   len(guest_name) <= 16: name_pt = max_pt
-    elif len(guest_name) <= 22: name_pt = max_pt - 2
-    elif len(guest_name) <= 30: name_pt = max_pt - 4
-    else:                        name_pt = max_pt - 5
+    # Font size scales with name length — base size 16pt for all ticket types
+    if   len(guest_name) <= 14: name_pt = 16
+    elif len(guest_name) <= 20: name_pt = 14
+    elif len(guest_name) <= 28: name_pt = 12
+    else:                        name_pt = 10
 
     name_x = TICKET_W * name_x_pct
     name_y = TICKET_H * name_y_pct
 
-    c.setFillColor(name_color)
+    # Black text with white shadow for maximum contrast on any background
+    # Shadow first (offset 0.5pt)
+    c.setFillColor(colors.white)
+    c.setFont('Helvetica-Bold', name_pt)
+    c.drawString(name_x + 0.5, name_y - 0.5, guest_name[:40])
+
+    # Main text in solid black
+    c.setFillColor(colors.black)
     c.setFont('Helvetica-Bold', name_pt)
     c.drawString(name_x, name_y, guest_name[:40])
 

@@ -112,16 +112,12 @@ TICKET_CONFIG = {
 
     # ── VIP ───────────────────────────────────────────────────────────────────
     # VIP.jpeg — 1280×720 px (black/gold)
-    # Stub: x=955-1250px → cx=1102px → cx_pct=0.8613
-    # QR space: y=345-530px (between VIP TICKET label and ADMIT ONE)
-    #   cy=(345+530)/2=437px → cy_pct=(720-437)/720=0.3924
-    #   size=0.601in square (PDF points)
-    # Name: x=210/1280=0.1641, y=(720-610)/720=0.1528 from bottom
+    # Gold TICKET HOLDER bar - use dark brown text for contrast
     'VIP': {
         'bg':            'VIP.jpeg',
-        'name_color':    '#c9960c',
-        'qr_cx_pct':     0.8544,
-        'qr_cy_pct':     0.3930,
+        'name_color':    '#2a1500',
+        'qr_cx_pct':     0.870,
+        'qr_cy_pct':     0.393,
         'qr_w_in':       1.177,
         'qr_h_in':       0.642,
         'name_x_pct':    0.1641,
@@ -129,11 +125,11 @@ TICKET_CONFIG = {
     },
 
     # ── SPECIAL GUEST ────────────────────────────────────────────────────────
-    # Same image size as REGULAR (1672×941) — use identical QR values
+    # Dark green/gold ticket, black TICKET HOLDER bar - use gold text
     'SPECIAL GUEST': {
         'bg':            'Pandora Awards SPecial guestTicket Poster.png',
-        'name_color':    '#c9960c',
-        'qr_cx_pct':     0.858,
+        'name_color':    '#d4a825',
+        'qr_cx_pct':     0.870,
         'qr_cy_pct':     0.393,
         'qr_w_in':       1.177,
         'qr_h_in':       0.642,
@@ -142,8 +138,8 @@ TICKET_CONFIG = {
     },
     'SPECIAL GUEST SEAT': {
         'bg':            'Pandora Awards SPecial guestTicket Poster.png',
-        'name_color':    '#c9960c',
-        'qr_cx_pct':     0.858,
+        'name_color':    '#d4a825',
+        'qr_cx_pct':     0.870,
         'qr_cy_pct':     0.393,
         'qr_w_in':       1.177,
         'qr_h_in':       0.642,
@@ -152,11 +148,11 @@ TICKET_CONFIG = {
     },
 
     # ── TABLE OF TEN ─────────────────────────────────────────────────────────
-    # Same image size as REGULAR (1672×941) — use identical QR values
+    # Maroon/gold ticket, black TICKET HOLDER bar - use gold text
     'TABLE OF TEN': {
         'bg':            'Pandora Awards Table for Ten Ticket.png',
-        'name_color':    '#c9960c',
-        'qr_cx_pct':     0.858,
+        'name_color':    '#d4a825',
+        'qr_cx_pct':     0.870,
         'qr_cy_pct':     0.393,
         'qr_w_in':       1.177,
         'qr_h_in':       0.642,
@@ -165,8 +161,8 @@ TICKET_CONFIG = {
     },
     'GOLD TABLE': {
         'bg':            'Pandora Awards Table for Ten Ticket.png',
-        'name_color':    '#c9960c',
-        'qr_cx_pct':     0.858,
+        'name_color':    '#d4a825',
+        'qr_cx_pct':     0.870,
         'qr_cy_pct':     0.393,
         'qr_w_in':       1.177,
         'qr_h_in':       0.642,
@@ -282,7 +278,7 @@ def generate_ticket_pdf(ticket) -> bytes:
     # ── 2. Guest name overlay (TICKET HOLDER strip) ─────────────────────
     guest_name = ticket.guest.full_name.upper()
 
-    # Font size scales with name length — base size 16pt for all ticket types
+    # Font size scales with name length
     if   len(guest_name) <= 14: name_pt = 16
     elif len(guest_name) <= 20: name_pt = 14
     elif len(guest_name) <= 28: name_pt = 12
@@ -291,15 +287,10 @@ def generate_ticket_pdf(ticket) -> bytes:
     name_x = TICKET_W * name_x_pct
     name_y = TICKET_H * name_y_pct
 
-    # Black text with white shadow for maximum contrast on any background
-    # Shadow first (offset 0.5pt)
-    c.setFillColor(colors.white)
+    # Draw name using the per-ticket name_color from config
+    c.setFillColor(name_color)
     c.setFont('Helvetica-Bold', name_pt)
-    c.drawString(name_x + 0.5, name_y - 0.5, guest_name[:40])
-
-    # Main text in solid black
-    c.setFillColor(colors.black)
-    c.setFont('Helvetica-Bold', name_pt)
+    c.drawString(name_x, name_y, guest_name[:40])
     c.drawString(name_x, name_y, guest_name[:40])
 
     # ── 3. QR code overlay (stub QR placeholder box) ────────────────────

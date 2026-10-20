@@ -130,15 +130,13 @@ TICKET_CONFIG = {
 
     # ── SPECIAL GUEST ────────────────────────────────────────────────────────
     # Pandora Awards SPecial guestTicket Poster.png — 1670×941 px (dark green/gold)
-    # Stub: x=1115-1620px → cx=1367px → cx_pct=0.8189
-    # QR space: y=410-680px (between SPECIAL GUEST label and SCAN TO VALIDATE)
-    #   cy=(410+680)/2=545px → cy_pct=(941-545)/941=0.4208
-    #   size=0.671in square (PDF points)
+    # Stub: x=1115-1650px → PDF 384.6-569.1pt, cx=476.8pt → cx_pct=0.8278
+    # QR space: y=410-680px → cy=(410+680)/2=545px → cy_pct=(941-545)/941=0.4208
     # Name: x=230/1670=0.1377, y=(941-820)/941=0.1286 from bottom
     'SPECIAL GUEST': {
         'bg':            'Pandora Awards SPecial guestTicket Poster.png',
         'name_color':    '#c9960c',
-        'qr_cx_pct':     0.8189,
+        'qr_cx_pct':     0.8278,
         'qr_cy_pct':     0.4208,
         'qr_w_in':       0.671,
         'qr_h_in':       0.671,
@@ -149,7 +147,7 @@ TICKET_CONFIG = {
     'SPECIAL GUEST SEAT': {
         'bg':            'Pandora Awards SPecial guestTicket Poster.png',
         'name_color':    '#c9960c',
-        'qr_cx_pct':     0.8189,
+        'qr_cx_pct':     0.8278,
         'qr_cy_pct':     0.4208,
         'qr_w_in':       0.671,
         'qr_h_in':       0.671,
@@ -159,15 +157,11 @@ TICKET_CONFIG = {
 
     # ── TABLE OF TEN ─────────────────────────────────────────────────────────
     # Pandora Awards Table for Ten Ticket.png — 1672×941 px (maroon/gold)
-    # Stub: x=1115-1622px → cx=1368px → cx_pct=0.8185
-    # QR space: y=415-675px (between TABLE FOR TEN label and ADMIT ONE)
-    #   cy=(415+675)/2=545px → cy_pct=(941-545)/941=0.4208
-    #   size=0.647in square (PDF points)
-    # Name: x=230/1672=0.1376, y=(941-820)/941=0.1286 from bottom
+    # Same stub layout as Special Guest → cx_pct=0.8278
     'TABLE OF TEN': {
         'bg':            'Pandora Awards Table for Ten Ticket.png',
         'name_color':    '#c9960c',
-        'qr_cx_pct':     0.8185,
+        'qr_cx_pct':     0.8278,
         'qr_cy_pct':     0.4208,
         'qr_w_in':       0.647,
         'qr_h_in':       0.647,
@@ -178,7 +172,7 @@ TICKET_CONFIG = {
     'GOLD TABLE': {
         'bg':            'Pandora Awards Table for Ten Ticket.png',
         'name_color':    '#c9960c',
-        'qr_cx_pct':     0.8185,
+        'qr_cx_pct':     0.8278,
         'qr_cy_pct':     0.4208,
         'qr_w_in':       0.647,
         'qr_h_in':       0.647,

@@ -120,62 +120,56 @@ TICKET_CONFIG = {
     'VIP': {
         'bg':            'VIP.jpeg',
         'name_color':    '#c9960c',
-        'qr_cx_pct':     0.8613,
-        'qr_cy_pct':     0.3924,
-        'qr_w_in':       0.601,
-        'qr_h_in':       0.601,
+        'qr_cx_pct':     0.8544,
+        'qr_cy_pct':     0.3930,
+        'qr_w_in':       1.177,
+        'qr_h_in':       0.642,
         'name_x_pct':    0.1641,
         'name_y_pct':    0.1528,
     },
 
     # ── SPECIAL GUEST ────────────────────────────────────────────────────────
-    # Pandora Awards SPecial guestTicket Poster.png — 1670×941 px (dark green/gold)
-    # Stub: x=1115-1650px → PDF 384.6-569.1pt, cx=476.8pt → cx_pct=0.8278
-    # QR space: y=410-680px → cy=(410+680)/2=545px → cy_pct=(941-545)/941=0.4208
-    # Name: x=230/1670=0.1377, y=(941-820)/941=0.1286 from bottom
+    # Same image size as REGULAR (1672×941) — use identical QR values
     'SPECIAL GUEST': {
         'bg':            'Pandora Awards SPecial guestTicket Poster.png',
         'name_color':    '#c9960c',
-        'qr_cx_pct':     0.8278,
-        'qr_cy_pct':     0.4208,
-        'qr_w_in':       0.671,
-        'qr_h_in':       0.671,
+        'qr_cx_pct':     0.858,
+        'qr_cy_pct':     0.393,
+        'qr_w_in':       1.177,
+        'qr_h_in':       0.642,
         'name_x_pct':    0.1377,
         'name_y_pct':    0.1286,
     },
-    # Alias — same design
     'SPECIAL GUEST SEAT': {
         'bg':            'Pandora Awards SPecial guestTicket Poster.png',
         'name_color':    '#c9960c',
-        'qr_cx_pct':     0.8278,
-        'qr_cy_pct':     0.4208,
-        'qr_w_in':       0.671,
-        'qr_h_in':       0.671,
+        'qr_cx_pct':     0.858,
+        'qr_cy_pct':     0.393,
+        'qr_w_in':       1.177,
+        'qr_h_in':       0.642,
         'name_x_pct':    0.1377,
         'name_y_pct':    0.1286,
     },
 
     # ── TABLE OF TEN ─────────────────────────────────────────────────────────
-    # Pandora Awards Table for Ten Ticket.png — 1672×941 px (maroon/gold)
-    # Same stub layout as Special Guest → cx_pct=0.8278
+    # Same image size as REGULAR (1672×941) — use identical QR values
     'TABLE OF TEN': {
         'bg':            'Pandora Awards Table for Ten Ticket.png',
         'name_color':    '#c9960c',
-        'qr_cx_pct':     0.8278,
-        'qr_cy_pct':     0.4208,
-        'qr_w_in':       0.647,
-        'qr_h_in':       0.647,
+        'qr_cx_pct':     0.858,
+        'qr_cy_pct':     0.393,
+        'qr_w_in':       1.177,
+        'qr_h_in':       0.642,
         'name_x_pct':    0.1376,
         'name_y_pct':    0.1286,
     },
-    # Alias
     'GOLD TABLE': {
         'bg':            'Pandora Awards Table for Ten Ticket.png',
         'name_color':    '#c9960c',
-        'qr_cx_pct':     0.8278,
-        'qr_cy_pct':     0.4208,
-        'qr_w_in':       0.647,
-        'qr_h_in':       0.647,
+        'qr_cx_pct':     0.858,
+        'qr_cy_pct':     0.393,
+        'qr_w_in':       1.177,
+        'qr_h_in':       0.642,
         'name_x_pct':    0.1376,
         'name_y_pct':    0.1286,
     },

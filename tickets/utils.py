@@ -291,7 +291,6 @@ def generate_ticket_pdf(ticket) -> bytes:
     c.setFillColor(name_color)
     c.setFont('Helvetica-Bold', name_pt)
     c.drawString(name_x, name_y, guest_name[:40])
-    c.drawString(name_x, name_y, guest_name[:40])
 
     # ── 3. QR code overlay (stub QR placeholder box) ────────────────────
     # The gold-bordered empty box on the stub.

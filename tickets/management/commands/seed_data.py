@@ -66,10 +66,10 @@ class Command(BaseCommand):
             self.stdout.write('  — Table of Ten already exists.')
 
         # ── Super admin account ────────────────────────────────────────────
-        if not User.objects.filter(username='pandoraadmin').exists():
+        if not User.objects.filter(username='Admin').exists():
             user = User.objects.create_superuser(
-                username='pandoraadmin',
-                password='Pandora@2026!',
+                username='Admin',
+                password='Admin1234@',
                 first_name='Pandora',
                 last_name='Administrator',
                 email='info.pandoraawards@gmail.com',
@@ -81,7 +81,7 @@ class Command(BaseCommand):
             except Exception:
                 UserProfile.objects.create(user=user, role=UserProfile.Role.ADMIN)
             self.stdout.write(self.style.SUCCESS(
-                '  ✔ Super admin created — username: pandoraadmin  password: Pandora@2026!'
+                '  ✔ Super admin created — username: Admin  password: Admin1234@'
             ))
             self.stdout.write(self.style.WARNING(
                 '  ⚠  CHANGE THIS PASSWORD immediately after first login!'

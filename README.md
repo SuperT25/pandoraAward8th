@@ -18,7 +18,7 @@ python manage.py runserver
 
 | Username | Password | Role |
 |---|---|---|
-| `pandoraadmin` | `Pandora@2026!` | Super Admin |
+| `Admin` | `Admin1234@` | Super Admin |
 
 > ⚠️ **Change this password immediately after first login.**
 

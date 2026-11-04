@@ -14,4 +14,13 @@ services:
       - key: ALLOWED_HOSTS
         value: ".onrender.com"
       - key: DATABASE_URL
-        value: "postgresql://postgres:Prima%402026A@db.oymgpkyhjeipsaljrjap.supabase.co:5432/postgres"
+        fromDatabase:
+          name: pandora-db-new
+          property: connectionString
+
+databases:
+  - name: pandora-db-new
+    plan: free
+    region: frankfurt
+    databaseName: pandora_eticket
+    user: pandora_admin
